@@ -37,7 +37,8 @@ def parse_requirements(name=None):
 
 setup(
     name='swh.icinga_plugins',
-    description='Icinga plugins for Software Heritage infrastructure monitoring',
+    description='Icinga plugins for Software Heritage infrastructure '
+                'monitoring',
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Software Heritage developers',
@@ -51,8 +52,8 @@ setup(
     vcversioner={},
     include_package_data=True,
     entry_points='''
-        [console_scripts]
-        check_vault = swh.icinga_plugins.vault:main
+        [swh.cli.subcommands]
+        icinga_plugins=swh.icinga_plugins.cli:cli
     ''',
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -64,6 +65,7 @@ setup(
     project_urls={
         'Bug Reports': 'https://forge.softwareheritage.org/maniphest',
         'Funding': 'https://www.softwareheritage.org/donate',
-        'Source': 'https://forge.softwareheritage.org/source/swh-icinga-plugins',
+        'Source':
+        'https://forge.softwareheritage.org/source/swh-icinga-plugins',
     },
 )

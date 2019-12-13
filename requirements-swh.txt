@@ -1,1 +1,1 @@
-# Add here internal Software Heritage dependencies, one per line.
+swh.storage >= v0.0.162
