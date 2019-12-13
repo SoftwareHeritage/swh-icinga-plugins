@@ -17,13 +17,19 @@ from .vault import VaultCheck
               help='URL to an swh-storage HTTP API')
 @click.option('--swh-web-url', type=str,
               help='URL to an swh-web instance')
+@click.option('-w', '--warning', type=int,
+              help='Warning threshold.')
+@click.option('-c', '--critical', type=int,
+              help='Critical threshold.')
 @click.pass_context
-def cli(ctx, swh_storage_url, swh_web_url):
+def cli(ctx, swh_storage_url, swh_web_url, warning, critical):
     """Main command for Icinga plugins
     """
     ctx.ensure_object(dict)
     ctx.obj['swh_storage_url'] = swh_storage_url
     ctx.obj['swh_web_url'] = swh_web_url
+    ctx.obj['warning_threshold'] = warning
+    ctx.obj['critical_threshold'] = critical
 
 
 @cli.group(name='check-vault')

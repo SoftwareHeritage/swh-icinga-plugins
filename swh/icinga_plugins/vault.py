@@ -9,13 +9,19 @@ import requests
 
 from swh.storage import get_storage
 
+from .base_check import BaseCheck
+
 
 class NoDirectory(Exception):
     pass
 
 
-class VaultCheck:
+class VaultCheck(BaseCheck):
+    DEFAULT_WARNING_THRESHOLD = 0
+    DEFAULT_CRITICAL_THRESHOLD = 3600
+
     def __init__(self, obj):
+        super().__init__(obj)
         self._swh_storage = get_storage('remote', url=obj['swh_storage_url'])
         self._swh_web_url = obj['swh_web_url']
         self._poll_interval = obj['poll_interval']
@@ -44,6 +50,7 @@ class VaultCheck:
             return 2
 
         start_time = time.time()
+        total_time = 0
         response = requests.post(self._url_for_dir(dir_id))
         assert response.status_code == 200, (response, response.text)
         result = response.json()
@@ -53,23 +60,30 @@ class VaultCheck:
             assert response.status_code == 200, (response, response.text)
             result = response.json()
 
-        end_time = time.time()
-        total_time = end_time - start_time
+            total_time = time.time() - start_time
+
+            if total_time > self.critical_threshold:
+                print(f'VAULT CRITICAL - cooking directory {dir_id.hex()} '
+                      f'took more than {total_time:.2f}s and has status: '
+                      f'{result["progress_message"]}')
+                print(f"| 'total time' = {total_time:.2f}s")
+                return 2
 
         if result['status'] == 'done':
-            print(f'VAULT OK - cooking directory {dir_id.hex()} '
+            (status_code, status) = self.get_status(total_time)
+            print(f'VAULT {status} - cooking directory {dir_id.hex()} '
                   f'took {total_time:.2f}s and succeeded.')
             print(f"| 'total time' = {total_time:.2f}s")
-            return 0
+            return status_code
         elif result['status'] == 'failed':
             print(f'VAULT CRITICAL - cooking directory {dir_id.hex()} '
                   f'took {total_time:.2f}s and failed with: '
                   f'{result["progress_message"]}')
             print(f"| 'total time' = {total_time:.2f}s")
-            return 3
+            return 2
         else:
             print(f'VAULT CRITICAL - cooking directory {dir_id.hex()} '
                   f'took {total_time:.2f}s and resulted in unknown: '
                   f'status: {result["status"]}')
             print(f"| 'total time' = {total_time:.2f}s")
-            return 3
+            return 2
