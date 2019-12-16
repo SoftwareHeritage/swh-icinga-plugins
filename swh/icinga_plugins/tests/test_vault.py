@@ -3,14 +3,13 @@
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
-import enum
-import json
 import re
 import time
 
 from click.testing import CliRunner
 
 from swh.icinga_plugins.cli import cli
+from .web_scenario import WebScenario
 
 
 dir_id = 'ab'*20
@@ -56,41 +55,15 @@ def invoke(args, catch_exceptions=False):
 
 
 def test_vault_immediate_success(requests_mock, mocker):
+    scenario = WebScenario()
 
-    class Step(enum.Enum):
-        NOTHING_DONE = 0
-        CHECKED_UNCOOKED = 1
-        REQUESTED_COOKING = 2
+    url = f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/'
 
-    step = Step.NOTHING_DONE
+    scenario.add_step('get', url, {}, status_code=404)
+    scenario.add_step('post', url, response_pending)
+    scenario.add_step('get', url, response_done)
 
-    def post_callback(request, context):
-        nonlocal step
-        if step == Step.CHECKED_UNCOOKED:
-            step = Step.REQUESTED_COOKING
-            return json.dumps(response_pending)
-        else:
-            assert False, step
-
-    def get_callback(request, context):
-        context.json = True
-        nonlocal step
-        if step == Step.NOTHING_DONE:
-            context.status_code = 404
-            step = Step.CHECKED_UNCOOKED
-        elif step == Step.CHECKED_UNCOOKED:
-            assert False
-        elif step == Step.REQUESTED_COOKING:
-            return json.dumps(response_done)
-        else:
-            assert False, step
-
-    requests_mock.get(
-        f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/',
-        text=get_callback)
-    requests_mock.post(
-        f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/',
-        text=post_callback)
+    scenario.install_mock(requests_mock)
 
     get_storage_mock = mocker.patch('swh.icinga_plugins.vault.get_storage')
     get_storage_mock.side_effect = FakeStorage
@@ -114,45 +87,16 @@ def test_vault_immediate_success(requests_mock, mocker):
 
 
 def test_vault_delayed_success(requests_mock, mocker):
+    scenario = WebScenario()
 
-    class Step(enum.Enum):
-        NOTHING_DONE = 0
-        CHECKED_UNCOOKED = 1
-        REQUESTED_COOKING = 2
-        PENDING = 3
+    url = f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/'
 
-    step = Step.NOTHING_DONE
+    scenario.add_step('get', url, {}, status_code=404)
+    scenario.add_step('post', url, response_pending)
+    scenario.add_step('get', url, response_pending)
+    scenario.add_step('get', url, response_done)
 
-    def post_callback(request, context):
-        nonlocal step
-        if step == Step.CHECKED_UNCOOKED:
-            step = Step.REQUESTED_COOKING
-            return json.dumps(response_pending)
-        else:
-            assert False, step
-
-    def get_callback(request, context):
-        context.json = True
-        nonlocal step
-        if step == Step.NOTHING_DONE:
-            context.status_code = 404
-            step = Step.CHECKED_UNCOOKED
-        elif step == Step.CHECKED_UNCOOKED:
-            assert False
-        elif step == Step.REQUESTED_COOKING:
-            step = Step.PENDING
-            return json.dumps(response_pending)
-        elif step == Step.PENDING:
-            return json.dumps(response_done)
-        else:
-            assert False, step
-
-    requests_mock.get(
-        f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/',
-        text=get_callback)
-    requests_mock.post(
-        f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/',
-        text=post_callback)
+    scenario.install_mock(requests_mock)
 
     get_storage_mock = mocker.patch('swh.icinga_plugins.vault.get_storage')
     get_storage_mock.side_effect = FakeStorage
@@ -176,41 +120,15 @@ def test_vault_delayed_success(requests_mock, mocker):
 
 
 def test_vault_failure(requests_mock, mocker):
+    scenario = WebScenario()
 
-    class Step(enum.Enum):
-        NOTHING_DONE = 0
-        CHECKED_UNCOOKED = 1
-        REQUESTED_COOKING = 2
+    url = f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/'
 
-    step = Step.NOTHING_DONE
+    scenario.add_step('get', url, {}, status_code=404)
+    scenario.add_step('post', url, response_pending)
+    scenario.add_step('get', url, response_failed)
 
-    def post_callback(request, context):
-        nonlocal step
-        if step == Step.CHECKED_UNCOOKED:
-            step = Step.REQUESTED_COOKING
-            return json.dumps(response_pending)
-        else:
-            assert False, step
-
-    def get_callback(request, context):
-        context.json = True
-        nonlocal step
-        if step == Step.NOTHING_DONE:
-            context.status_code = 404
-            step = Step.CHECKED_UNCOOKED
-        elif step == Step.CHECKED_UNCOOKED:
-            assert False
-        elif step == Step.REQUESTED_COOKING:
-            return json.dumps(response_failed)
-        else:
-            assert False, step
-
-    requests_mock.get(
-        f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/',
-        text=get_callback)
-    requests_mock.post(
-        f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/',
-        text=post_callback)
+    scenario.install_mock(requests_mock)
 
     get_storage_mock = mocker.patch('swh.icinga_plugins.vault.get_storage')
     get_storage_mock.side_effect = FakeStorage
@@ -234,46 +152,23 @@ def test_vault_failure(requests_mock, mocker):
 
 
 def test_vault_timeout(requests_mock, mocker):
+    time_offset = 0
 
-    class Step(enum.Enum):
-        NOTHING_DONE = 0
-        CHECKED_UNCOOKED = 1
-        REQUESTED_COOKING = 2
-        PENDING = 3
+    def increment_time():
+        nonlocal time_offset
+        time_offset += 4000
 
-    step = Step.NOTHING_DONE
+    scenario = WebScenario()
 
-    def post_callback(request, context):
-        nonlocal step
-        if step == Step.CHECKED_UNCOOKED:
-            step = Step.REQUESTED_COOKING
-            return json.dumps(response_pending)
-        else:
-            assert False, step
+    url = f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/'
 
-    def get_callback(request, context):
-        context.json = True
-        nonlocal step, time_offset
-        if step == Step.NOTHING_DONE:
-            context.status_code = 404
-            step = Step.CHECKED_UNCOOKED
-        elif step == Step.CHECKED_UNCOOKED:
-            assert False
-        elif step == Step.REQUESTED_COOKING:
-            step = Step.PENDING
-            return json.dumps(response_pending)
-        elif step == Step.PENDING:
-            time_offset += 4000  # jump forward in time more than 1h
-            return json.dumps(response_pending)
-        else:
-            assert False, step
+    scenario.add_step('get', url, {}, status_code=404)
+    scenario.add_step('post', url, response_pending)
+    scenario.add_step('get', url, response_pending)
+    scenario.add_step('get', url, response_pending,
+                      callback=increment_time)
 
-    requests_mock.get(
-        f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/',
-        text=get_callback)
-    requests_mock.post(
-        f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/',
-        text=post_callback)
+    scenario.install_mock(requests_mock)
 
     get_storage_mock = mocker.patch('swh.icinga_plugins.vault.get_storage')
     get_storage_mock.side_effect = FakeStorage
@@ -281,7 +176,6 @@ def test_vault_timeout(requests_mock, mocker):
     sleep_mock = mocker.patch('time.sleep')
 
     real_time = time.time
-    time_offset = 0
     mocker.patch(
         'time.time', side_effect=lambda: real_time() + time_offset)
 
