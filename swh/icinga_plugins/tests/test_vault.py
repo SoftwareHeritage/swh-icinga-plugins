@@ -71,9 +71,10 @@ def test_vault_immediate_success(requests_mock, mocker):
     sleep_mock = mocker.patch('time.sleep')
 
     result = invoke([
+        'check-vault',
         '--swh-web-url', 'mock://swh-web.example.org',
         '--swh-storage-url', 'foo://example.org',
-        'check-vault', 'directory',
+        'directory',
     ])
 
     assert re.match(
@@ -104,9 +105,10 @@ def test_vault_delayed_success(requests_mock, mocker):
     sleep_mock = mocker.patch('time.sleep')
 
     result = invoke([
+        'check-vault',
         '--swh-web-url', 'mock://swh-web.example.org',
         '--swh-storage-url', 'foo://example.org',
-        'check-vault', 'directory',
+        'directory',
     ])
 
     assert re.match(
@@ -136,9 +138,10 @@ def test_vault_failure(requests_mock, mocker):
     sleep_mock = mocker.patch('time.sleep')
 
     result = invoke([
+        'check-vault',
         '--swh-web-url', 'mock://swh-web.example.org',
         '--swh-storage-url', 'foo://example.org',
-        'check-vault', 'directory',
+        'directory',
     ], catch_exceptions=True)
 
     assert re.match(
@@ -180,9 +183,10 @@ def test_vault_timeout(requests_mock, mocker):
         'time.time', side_effect=lambda: real_time() + time_offset)
 
     result = invoke([
+        'check-vault',
         '--swh-web-url', 'mock://swh-web.example.org',
         '--swh-storage-url', 'foo://example.org',
-        'check-vault', 'directory',
+        'directory',
     ], catch_exceptions=True)
 
     assert re.match(

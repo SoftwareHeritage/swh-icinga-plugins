@@ -13,32 +13,29 @@ from .vault import VaultCheck
 
 
 @click.group(name='icinga_plugins', context_settings=CONTEXT_SETTINGS)
-@click.option('--swh-storage-url', type=str,
-              help='URL to an swh-storage HTTP API')
-@click.option('--swh-web-url', type=str,
-              help='URL to an swh-web instance')
 @click.option('-w', '--warning', type=int,
               help='Warning threshold.')
 @click.option('-c', '--critical', type=int,
               help='Critical threshold.')
 @click.pass_context
-def cli(ctx, swh_storage_url, swh_web_url, warning, critical):
+def cli(ctx, **kwargs):
     """Main command for Icinga plugins
     """
     ctx.ensure_object(dict)
-    ctx.obj['swh_storage_url'] = swh_storage_url
-    ctx.obj['swh_web_url'] = swh_web_url
-    ctx.obj['warning_threshold'] = warning
-    ctx.obj['critical_threshold'] = critical
+    ctx.obj.update(kwargs)
 
 
 @cli.group(name='check-vault')
+@click.option('--swh-storage-url', type=str, required=True,
+              help='URL to an swh-storage HTTP API')
+@click.option('--swh-web-url', type=str, required=True,
+              help='URL to an swh-web instance')
 @click.option('--poll-interval', type=int, default=10,
               help='Interval (in seconds) between two polls to the API, '
                    'to check for cooking status.')
 @click.pass_context
-def check_vault(ctx, poll_interval):
-    ctx.obj['poll_interval'] = poll_interval
+def check_vault(ctx, **kwargs):
+    ctx.obj.update(kwargs)
 
 
 @check_vault.command(name='directory')
