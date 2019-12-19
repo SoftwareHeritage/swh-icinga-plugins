@@ -77,9 +77,9 @@ def test_vault_immediate_success(requests_mock, mocker):
     ])
 
     assert re.match(
-        rf'VAULT OK - cooking directory {dir_id} took '
+        rf'^VAULT OK - cooking directory {dir_id} took '
         r'[0-9]\.[0-9]{2}s and succeeded.\n'
-        r"| 'total time' = [0-9]\.[0-9]{2}s",
+        r"\| 'total time' = [0-9]\.[0-9]{2}s$",
         result.output)
     assert result.exit_code == 0, result.output
 
@@ -110,9 +110,9 @@ def test_vault_delayed_success(requests_mock, mocker):
     ])
 
     assert re.match(
-        rf'VAULT OK - cooking directory {dir_id} took '
+        rf'^VAULT OK - cooking directory {dir_id} took '
         r'[0-9]\.[0-9]{2}s and succeeded.\n'
-        r"| 'total time' = [0-9]\.[0-9]{2}s",
+        r"\| 'total time' = [0-9]\.[0-9]{2}s$",
         result.output)
     assert result.exit_code == 0, result.output
 
@@ -142,9 +142,9 @@ def test_vault_failure(requests_mock, mocker):
     ], catch_exceptions=True)
 
     assert re.match(
-        rf'VAULT CRITICAL - cooking directory {dir_id} took '
+        rf'^VAULT CRITICAL - cooking directory {dir_id} took '
         r'[0-9]\.[0-9]{2}s and failed with: foobar\n'
-        r"| 'total time' = [0-9]\.[0-9]{2}s",
+        r"\| 'total time' = [0-9]\.[0-9]{2}s\n$",
         result.output)
     assert result.exit_code == 2, result.output
 
@@ -186,9 +186,9 @@ def test_vault_timeout(requests_mock, mocker):
     ], catch_exceptions=True)
 
     assert re.match(
-        rf'VAULT CRITICAL - cooking directory {dir_id} took more than '
+        rf'^VAULT CRITICAL - cooking directory {dir_id} took more than '
         r'[0-9]+\.[0-9]{2}s and has status: foo\n'
-        r"| 'total time' = [0-9]\.[0-9]{2}s",
+        r"\| 'total time' = [0-9]{4}\.[0-9]{2}s\n$",
         result.output)
     assert result.exit_code == 2, result.output
 
