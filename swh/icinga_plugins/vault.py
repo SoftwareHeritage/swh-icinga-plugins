@@ -17,6 +17,7 @@ class NoDirectory(Exception):
 
 
 class VaultCheck(BaseCheck):
+    TYPE = 'VAULT'
     DEFAULT_WARNING_THRESHOLD = 0
     DEFAULT_CRITICAL_THRESHOLD = 3600
 
@@ -46,7 +47,9 @@ class VaultCheck(BaseCheck):
         try:
             dir_id = self._pick_uncached_directory()
         except NoDirectory:
-            print('VAULT CRITICAL - No directory exists in the archive')
+            self.print_result(
+                'CRITICAL',
+                'No directory exists in the archive')
             return 2
 
         start_time = time.time()
@@ -63,27 +66,33 @@ class VaultCheck(BaseCheck):
             total_time = time.time() - start_time
 
             if total_time > self.critical_threshold:
-                print(f'VAULT CRITICAL - cooking directory {dir_id.hex()} '
-                      f'took more than {total_time:.2f}s and has status: '
-                      f'{result["progress_message"]}')
-                print(f"| 'total time' = {total_time:.2f}s")
+                self.print_result(
+                    'CRITICAL',
+                    f'cooking directory {dir_id.hex()} took more than '
+                    f'{total_time:.2f}s and has status: '
+                    f'{result["progress_message"]}',
+                    total_time=total_time)
                 return 2
 
         if result['status'] == 'done':
             (status_code, status) = self.get_status(total_time)
-            print(f'VAULT {status} - cooking directory {dir_id.hex()} '
-                  f'took {total_time:.2f}s and succeeded.')
-            print(f"| 'total time' = {total_time:.2f}s")
+            self.print_result(
+                status,
+                f'cooking directory {dir_id.hex()} took {total_time:.2f}s '
+                f'and succeeded.',
+                total_time=total_time)
             return status_code
         elif result['status'] == 'failed':
-            print(f'VAULT CRITICAL - cooking directory {dir_id.hex()} '
-                  f'took {total_time:.2f}s and failed with: '
-                  f'{result["progress_message"]}')
-            print(f"| 'total time' = {total_time:.2f}s")
+            self.print_result(
+                'CRITICAL',
+                f'cooking directory {dir_id.hex()} took {total_time:.2f}s '
+                f'and failed with: {result["progress_message"]}',
+                total_time=total_time)
             return 2
         else:
-            print(f'VAULT CRITICAL - cooking directory {dir_id.hex()} '
-                  f'took {total_time:.2f}s and resulted in unknown: '
-                  f'status: {result["status"]}')
-            print(f"| 'total time' = {total_time:.2f}s")
+            self.print_result(
+                'CRITICAL',
+                f'cooking directory {dir_id.hex()} took {total_time:.2f}s '
+                f'and resulted in unknown status: {result["status"]}',
+                total_time=total_time)
             return 2
