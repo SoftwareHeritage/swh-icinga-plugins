@@ -1,1 +1,3 @@
+swh.core[http]  # required by swh.storage
+swh.deposit
 swh.storage >= v0.0.162

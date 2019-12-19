@@ -84,4 +84,7 @@ class WebScenario:
         if step.callback:
             step.callback()
 
-        return json.dumps(step.response)
+        if isinstance(step.response, str):
+            return step.response
+        else:
+            return json.dumps(step.response)
