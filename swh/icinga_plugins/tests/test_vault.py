@@ -3,7 +3,6 @@
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
-import re
 import time
 
 from click.testing import CliRunner
@@ -54,7 +53,7 @@ def invoke(args, catch_exceptions=False):
     return result
 
 
-def test_vault_immediate_success(requests_mock, mocker):
+def test_vault_immediate_success(requests_mock, mocker, mocked_time):
     scenario = WebScenario()
 
     url = f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/'
@@ -68,8 +67,6 @@ def test_vault_immediate_success(requests_mock, mocker):
     get_storage_mock = mocker.patch('swh.icinga_plugins.vault.get_storage')
     get_storage_mock.side_effect = FakeStorage
 
-    sleep_mock = mocker.patch('time.sleep')
-
     result = invoke([
         'check-vault',
         '--swh-web-url', 'mock://swh-web.example.org',
@@ -77,17 +74,14 @@ def test_vault_immediate_success(requests_mock, mocker):
         'directory',
     ])
 
-    assert re.match(
-        rf'^VAULT OK - cooking directory {dir_id} took '
-        r'[0-9]\.[0-9]{2}s and succeeded.\n'
-        r"\| 'total_time' = [0-9]\.[0-9]{2}s$",
-        result.output)
+    assert result.output == (
+        f"VAULT OK - cooking directory {dir_id} took "
+        f"10.00s and succeeded.\n"
+        f"| 'total_time' = 10.00s\n")
     assert result.exit_code == 0, result.output
 
-    sleep_mock.assert_called_once_with(10)
 
-
-def test_vault_delayed_success(requests_mock, mocker):
+def test_vault_delayed_success(requests_mock, mocker, mocked_time):
     scenario = WebScenario()
 
     url = f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/'
@@ -102,8 +96,6 @@ def test_vault_delayed_success(requests_mock, mocker):
     get_storage_mock = mocker.patch('swh.icinga_plugins.vault.get_storage')
     get_storage_mock.side_effect = FakeStorage
 
-    sleep_mock = mocker.patch('time.sleep')
-
     result = invoke([
         'check-vault',
         '--swh-web-url', 'mock://swh-web.example.org',
@@ -111,17 +103,14 @@ def test_vault_delayed_success(requests_mock, mocker):
         'directory',
     ])
 
-    assert re.match(
-        rf'^VAULT OK - cooking directory {dir_id} took '
-        r'[0-9]\.[0-9]{2}s and succeeded.\n'
-        r"\| 'total_time' = [0-9]\.[0-9]{2}s$",
-        result.output)
+    assert result.output == (
+        f"VAULT OK - cooking directory {dir_id} took "
+        f"20.00s and succeeded.\n"
+        f"| 'total_time' = 20.00s\n")
     assert result.exit_code == 0, result.output
 
-    assert sleep_mock.call_count == 2
 
-
-def test_vault_failure(requests_mock, mocker):
+def test_vault_failure(requests_mock, mocker, mocked_time):
     scenario = WebScenario()
 
     url = f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/'
@@ -135,8 +124,6 @@ def test_vault_failure(requests_mock, mocker):
     get_storage_mock = mocker.patch('swh.icinga_plugins.vault.get_storage')
     get_storage_mock.side_effect = FakeStorage
 
-    sleep_mock = mocker.patch('time.sleep')
-
     result = invoke([
         'check-vault',
         '--swh-web-url', 'mock://swh-web.example.org',
@@ -144,23 +131,14 @@ def test_vault_failure(requests_mock, mocker):
         'directory',
     ], catch_exceptions=True)
 
-    assert re.match(
-        rf'^VAULT CRITICAL - cooking directory {dir_id} took '
-        r'[0-9]\.[0-9]{2}s and failed with: foobar\n'
-        r"\| 'total_time' = [0-9]\.[0-9]{2}s\n$",
-        result.output)
+    assert result.output == (
+        f"VAULT CRITICAL - cooking directory {dir_id} took "
+        f"10.00s and failed with: foobar\n"
+        f"| 'total_time' = 10.00s\n")
     assert result.exit_code == 2, result.output
 
-    sleep_mock.assert_called_once_with(10)
 
-
-def test_vault_timeout(requests_mock, mocker):
-    time_offset = 0
-
-    def increment_time():
-        nonlocal time_offset
-        time_offset += 4000
-
+def test_vault_timeout(requests_mock, mocker, mocked_time):
     scenario = WebScenario()
 
     url = f'mock://swh-web.example.org/api/1/vault/directory/{dir_id}/'
@@ -169,18 +147,12 @@ def test_vault_timeout(requests_mock, mocker):
     scenario.add_step('post', url, response_pending)
     scenario.add_step('get', url, response_pending)
     scenario.add_step('get', url, response_pending,
-                      callback=increment_time)
+                      callback=lambda: time.sleep(4000))
 
     scenario.install_mock(requests_mock)
 
     get_storage_mock = mocker.patch('swh.icinga_plugins.vault.get_storage')
     get_storage_mock.side_effect = FakeStorage
-
-    sleep_mock = mocker.patch('time.sleep')
-
-    real_time = time.time
-    mocker.patch(
-        'time.time', side_effect=lambda: real_time() + time_offset)
 
     result = invoke([
         'check-vault',
@@ -189,11 +161,8 @@ def test_vault_timeout(requests_mock, mocker):
         'directory',
     ], catch_exceptions=True)
 
-    assert re.match(
-        rf'^VAULT CRITICAL - cooking directory {dir_id} took more than '
-        r'[0-9]+\.[0-9]{2}s and has status: foo\n'
-        r"\| 'total_time' = [0-9]{4}\.[0-9]{2}s\n$",
-        result.output)
+    assert result.output == (
+        f"VAULT CRITICAL - cooking directory {dir_id} took more than "
+        f"4020.00s and has status: foo\n"
+        f"| 'total_time' = 4020.00s\n")
     assert result.exit_code == 2, result.output
-
-    assert sleep_mock.call_count == 2
