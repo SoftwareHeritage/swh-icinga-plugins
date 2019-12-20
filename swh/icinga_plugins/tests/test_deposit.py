@@ -169,6 +169,75 @@ def test_deposit_delays(
     assert result.exit_code == 0, result.output
 
 
+def test_deposit_delay_warning(
+        requests_mock, mocker, sample_archive, sample_metadata, mocked_time):
+    scenario = WebScenario()
+
+    scenario.add_step(
+        'post', BASE_URL + '/testcol/',
+        ENTRY_TEMPLATE.format(status='deposited'))
+    scenario.add_step(
+        'get', BASE_URL + '/testcol/42/status/',
+        STATUS_TEMPLATE.format(status='verified', status_detail=''))
+    scenario.add_step(
+        'get', BASE_URL + '/testcol/42/status/',
+        STATUS_TEMPLATE.format(status='done', status_detail=''))
+
+    scenario.install_mock(requests_mock)
+
+    result = invoke([
+        '--warning', '15',
+        'check-deposit',
+        *COMMON_OPTIONS,
+        'single',
+        '--archive', sample_archive,
+        '--metadata', sample_metadata,
+    ], catch_exceptions=True)
+
+    assert result.output == (
+        "DEPOSIT WARNING - Deposit took 20.00s and succeeded.\n"
+        "| 'load_time' = 10.00s\n"
+        "| 'total_time' = 20.00s\n"
+        "| 'upload_time' = 0.00s\n"
+        "| 'validation_time' = 10.00s\n")
+    assert result.exit_code == 1, result.output
+
+
+def test_deposit_delay_critical(
+        requests_mock, mocker, sample_archive, sample_metadata, mocked_time):
+    scenario = WebScenario()
+
+    scenario.add_step(
+        'post', BASE_URL + '/testcol/',
+        ENTRY_TEMPLATE.format(status='deposited'))
+    scenario.add_step(
+        'get', BASE_URL + '/testcol/42/status/',
+        STATUS_TEMPLATE.format(status='verified', status_detail=''))
+    scenario.add_step(
+        'get', BASE_URL + '/testcol/42/status/',
+        STATUS_TEMPLATE.format(status='done', status_detail=''),
+        callback=lambda: time.sleep(60))
+
+    scenario.install_mock(requests_mock)
+
+    result = invoke([
+        '--critical', '50',
+        'check-deposit',
+        *COMMON_OPTIONS,
+        'single',
+        '--archive', sample_archive,
+        '--metadata', sample_metadata,
+    ], catch_exceptions=True)
+
+    assert result.output == (
+        "DEPOSIT CRITICAL - Deposit took 80.00s and succeeded.\n"
+        "| 'load_time' = 70.00s\n"
+        "| 'total_time' = 80.00s\n"
+        "| 'upload_time' = 0.00s\n"
+        "| 'validation_time' = 10.00s\n")
+    assert result.exit_code == 2, result.output
+
+
 def test_deposit_timeout(
         requests_mock, mocker, sample_archive, sample_metadata, mocked_time):
     scenario = WebScenario()

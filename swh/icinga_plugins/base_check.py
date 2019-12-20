@@ -7,9 +7,9 @@
 class BaseCheck:
     def __init__(self, obj):
         self.warning_threshold = obj.get(
-            '_warning_threshold', self.DEFAULT_WARNING_THRESHOLD)
+            'warning_threshold', self.DEFAULT_WARNING_THRESHOLD)
         self.critical_threshold = obj.get(
-            '_critical_threshold', self.DEFAULT_CRITICAL_THRESHOLD)
+            'critical_threshold', self.DEFAULT_CRITICAL_THRESHOLD)
 
     def get_status(self, value):
         if self.critical_threshold and value >= self.critical_threshold:

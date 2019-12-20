@@ -19,11 +19,14 @@ from .vault import VaultCheck
 @click.option('-c', '--critical', type=int,
               help='Critical threshold.')
 @click.pass_context
-def cli(ctx, **kwargs):
+def cli(ctx, warning, critical):
     """Main command for Icinga plugins
     """
     ctx.ensure_object(dict)
-    ctx.obj.update(kwargs)
+    if warning:
+        ctx.obj['warning_threshold'] = int(warning)
+    if critical:
+        ctx.obj['critical_threshold'] = int(critical)
 
 
 @cli.group(name='check-vault')
