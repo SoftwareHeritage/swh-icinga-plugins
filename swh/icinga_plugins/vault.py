@@ -49,7 +49,7 @@ class VaultCheck(BaseCheck):
         except NoDirectory:
             self.print_result(
                 'CRITICAL',
-                'No directory exists in the archive')
+                'No directory exists in the archive.')
             return 2
 
         start_time = time.time()
