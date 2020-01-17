@@ -15,7 +15,7 @@ from swh.icinga_plugins.cli import cli
 from .web_scenario import WebScenario
 
 
-BASE_URL = 'mock://swh-deposit.example.org/1'
+BASE_URL = 'http://swh-deposit.example.org/1'
 
 COMMON_OPTIONS = [
     '--server', BASE_URL,
