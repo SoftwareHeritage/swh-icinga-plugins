@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-# Copyright (C) 2019  The Software Heritage developers
+# Copyright (C) 2019-2020  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
 from setuptools import setup, find_packages
 
-from os import path
+from os import path, walk
 from io import open
 
 here = path.abspath(path.dirname(__file__))
@@ -33,6 +33,14 @@ def parse_requirements(name=None):
                 continue
             requirements.append(line)
     return requirements
+
+
+# package generated static assets as module data files
+data_files = []
+for root, _, files in walk('data/'):
+    root_files = [path.join(root, i) for i in files]
+    data_files.append((path.join('share/swh/icinga-plugins', root),
+                       root_files))
 
 
 setup(
@@ -68,4 +76,5 @@ setup(
         'Source':
         'https://forge.softwareheritage.org/source/swh-icinga-plugins',
     },
+    data_files=data_files
 )
