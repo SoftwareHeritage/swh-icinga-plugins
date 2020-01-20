@@ -1,0 +1,5 @@
+swh.icingaplugins (0.0.2-1+swh1) unstable-swh; urgency=medium
+
+  * Initial packaging for swh.icingaplugins
+
+ -- Antoine R. Dumont (@ardumont) <ardumont@softwareheritage.org>  Mon, 20 Jan 2020 18:48:41 +0100
