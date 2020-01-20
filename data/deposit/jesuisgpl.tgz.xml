@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<entry xmlns="http://www.w3.org/2005/Atom"
+xmlns:codemeta="https://doi.org/10.5063/SCHEMA/CODEMETA-2.0">
+  <title>Je suis GPL</title>
+  <client>swh</client>
+  <external_identifier>je-suis-gpl</external_identifier>
+  <codemeta:url>https://forge.softwareheritage.org/source/jesuisgpl/</codemeta:url>
+  <codemeta:dateCreated>2018-01-05</codemeta:dateCreated>
+  <codemeta:description>Je suis GPL is a modified version of GNU Hello whose
+    sole purpose is to showcase the usage of
+    Software Heritage for license compliance purposes.</codemeta:description>
+  <codemeta:version>0.1</codemeta:version>
+  <codemeta:runtimePlatform>GNU/Linux</codemeta:runtimePlatform>
+  <codemeta:developmentStatus>stable</codemeta:developmentStatus>
+  <codemeta:programmingLanguage>C</codemeta:programmingLanguage>
+
+  <codemeta:license>
+    <codemeta:name>GNU General Public License v3.0 or later</codemeta:name>
+    <codemeta:url>https://spdx.org/licenses/GPL-3.0-or-later.html</codemeta:url>
+  </codemeta:license>
+  <codemeta:author>
+    <codemeta:name>Stefano Zacchiroli</codemeta:name>
+    <codemeta:jobTitle>Maintainer</codemeta:jobTitle>
+  </codemeta:author>
+</entry>
