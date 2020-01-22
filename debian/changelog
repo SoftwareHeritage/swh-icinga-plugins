@@ -1,3 +1,9 @@
+swh.icingaplugins (0.0.2-1+swh4) unstable-swh; urgency=medium
+
+  * Add missing dependency
+
+ -- Antoine R. Dumont (@ardumont) <ardumont@softwareheritage.org>  Tue, 22 Jan 2020 13:18:46 +0100
+
 swh.icingaplugins (0.0.2-1+swh3) unstable-swh; urgency=medium
 
   * Bump to unstuck build
