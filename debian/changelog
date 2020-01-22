@@ -1,8 +1,8 @@
-swh.icingaplugins (0.0.2-1+swh3~bpo10+1) buster-swh; urgency=medium
+swh.icingaplugins (0.0.2-1+swh4) unstable-swh; urgency=medium
 
-  * Rebuild for buster-swh
+  * Add missing dependency
 
- -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Tue, 21 Jan 2020 13:33:06 +0000
+ -- Antoine R. Dumont (@ardumont) <ardumont@softwareheritage.org>  Tue, 22 Jan 2020 13:18:46 +0100
 
 swh.icingaplugins (0.0.2-1+swh3) unstable-swh; urgency=medium
 
