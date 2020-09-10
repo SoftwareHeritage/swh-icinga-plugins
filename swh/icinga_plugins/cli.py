@@ -1,16 +1,15 @@
-# Copyright (C) 2019  The Software Heritage developers
+# Copyright (C) 2019-2020  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
+# WARNING: do not import unnecessary things here to keep cli startup time under
+# control
 import sys
 
 import click
 
 from swh.core.cli import CONTEXT_SETTINGS
-
-from .deposit import DepositCheck
-from .vault import VaultCheck
 
 
 @click.group(name='icinga_plugins', context_settings=CONTEXT_SETTINGS)
@@ -47,6 +46,7 @@ def check_vault(ctx, **kwargs):
 def check_vault_directory(ctx):
     """Picks a random directory, requests its cooking via swh-web,
     and waits for completion."""
+    from .vault import VaultCheck
     sys.exit(VaultCheck(ctx.obj).main())
 
 
@@ -76,5 +76,7 @@ def check_deposit(ctx, **kwargs):
 @click.pass_context
 def check_deposit_single(ctx, **kwargs):
     """Checks the provided archive and metadata file and be deposited."""
+    from .deposit import DepositCheck
+
     ctx.obj.update(kwargs)
     sys.exit(DepositCheck(ctx.obj).main())
