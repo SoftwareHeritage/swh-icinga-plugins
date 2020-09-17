@@ -12,8 +12,8 @@ from click.testing import CliRunner
 import pytest
 
 from swh.icinga_plugins.cli import cli
-from .web_scenario import WebScenario
 
+from .web_scenario import WebScenario
 
 BASE_URL = 'http://swh-deposit.example.org/1'
 

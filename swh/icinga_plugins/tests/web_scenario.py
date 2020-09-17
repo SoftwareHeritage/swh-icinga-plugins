@@ -11,7 +11,7 @@ with specifications of what endpoints should be called and in what order."""
 
 from dataclasses import dataclass
 import json
-from typing import List, Set, Optional, Callable
+from typing import Callable, List, Optional, Set
 
 import requests_mock
 

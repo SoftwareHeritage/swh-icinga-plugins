@@ -8,8 +8,8 @@ import time
 from click.testing import CliRunner
 
 from swh.icinga_plugins.cli import cli
-from .web_scenario import WebScenario
 
+from .web_scenario import WebScenario
 
 dir_id = 'ab'*20
 

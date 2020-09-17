@@ -7,9 +7,9 @@ import datetime
 import sys
 import time
 
-from .base_check import BaseCheck
-
 from swh.deposit.client import PublicApiDepositClient
+
+from .base_check import BaseCheck
 
 
 class DepositCheck(BaseCheck):
