@@ -68,8 +68,8 @@ class WebScenario:
         """
         for endpoint in self._endpoints:
             mocker.register_uri(
-                endpoint.method.upper(), endpoint.url,
-                text=self._request_callback)
+                endpoint.method.upper(), endpoint.url, text=self._request_callback
+            )
 
     def _request_callback(self, request, context):
         step = self._steps[self._current_step]
