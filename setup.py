@@ -60,7 +60,7 @@ setup(
     include_package_data=True,
     entry_points="""
         [swh.cli.subcommands]
-        icinga_plugins=swh.icinga_plugins.cli:cli
+        icinga_plugins=swh.icinga_plugins.cli
     """,
     classifiers=[
         "Programming Language :: Python :: 3",

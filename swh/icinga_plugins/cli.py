@@ -9,14 +9,14 @@ import sys
 
 import click
 
-from swh.core.cli import CONTEXT_SETTINGS
+from swh.core.cli import CONTEXT_SETTINGS, swh as swh_cli_group
 
 
-@click.group(name="icinga_plugins", context_settings=CONTEXT_SETTINGS)
+@swh_cli_group.group(name="icinga_plugins", context_settings=CONTEXT_SETTINGS)
 @click.option("-w", "--warning", type=int, help="Warning threshold.")
 @click.option("-c", "--critical", type=int, help="Critical threshold.")
 @click.pass_context
-def cli(ctx, warning, critical):
+def icinga_cli_group(ctx, warning, critical):
     """Main command for Icinga plugins
     """
     ctx.ensure_object(dict)
@@ -26,7 +26,7 @@ def cli(ctx, warning, critical):
         ctx.obj["critical_threshold"] = int(critical)
 
 
-@cli.group(name="check-vault")
+@icinga_cli_group.group(name="check-vault")
 @click.option(
     "--swh-storage-url", type=str, required=True, help="URL to an swh-storage HTTP API"
 )
@@ -55,7 +55,7 @@ def check_vault_directory(ctx):
     sys.exit(VaultCheck(ctx.obj).main())
 
 
-@cli.group(name="check-deposit")
+@icinga_cli_group.group(name="check-deposit")
 @click.option(
     "--server",
     type=str,

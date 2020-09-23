@@ -11,7 +11,7 @@ import time
 from click.testing import CliRunner
 import pytest
 
-from swh.icinga_plugins.cli import cli
+from swh.icinga_plugins.cli import icinga_cli_group
 
 from .web_scenario import WebScenario
 
@@ -101,7 +101,7 @@ def sample_archive(tmp_path):
 
 def invoke(args, catch_exceptions=False):
     runner = CliRunner()
-    result = runner.invoke(cli, args)
+    result = runner.invoke(icinga_cli_group, args)
     if not catch_exceptions and result.exception:
         print(result.output)
         raise result.exception
