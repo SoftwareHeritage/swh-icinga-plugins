@@ -170,10 +170,37 @@ def invoke(args, catch_exceptions=False):
 def test_deposit_immediate_success(
     requests_mock, mocker, sample_archive, sample_metadata, mocked_time
 ):
+    """Both deposit creation and deposit metadata update passed without delays
+
+    """
     scenario = WebScenario()
 
+    status_xml = status_template(
+        status="done",
+        status_detail="",
+        swhid="swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74",
+    )
+
+    # Initial deposit
     scenario.add_step(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="done")
+    )
+    # Then metadata update
+    status_xml = status_template(
+        status="done",
+        status_detail="",
+        swhid="swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74",
+    )
+    scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
+    # internal deposit client does call status, then update metadata then status api
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
+    )
+    scenario.add_step(
+        "put", f"{BASE_URL}/testcol/42/metadata/", status_xml,
+    )
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
     )
 
     scenario.install_mock(requests_mock)
@@ -196,6 +223,9 @@ def test_deposit_immediate_success(
         "| 'total_time' = 0.00s\n"
         "| 'upload_time' = 0.00s\n"
         "| 'validation_time' = 0.00s\n"
+        "DEPOSIT OK - Deposit Metadata update took 0.00s and succeeded.\n"
+        "| 'total_time' = 0.00s\n"
+        "| 'update_time' = 0.00s\n"
     )
     assert result.exit_code == 0, f"Unexpected output: {result.output}"
 
@@ -203,6 +233,10 @@ def test_deposit_immediate_success(
 def test_deposit_delays(
     requests_mock, mocker, sample_archive, sample_metadata, mocked_time
 ):
+    """Deposit creation passed with some delays, deposit metadata update passed without
+    delay
+
+    """
     scenario = WebScenario()
 
     scenario.add_step(
@@ -216,6 +250,23 @@ def test_deposit_delays(
     )
     scenario.add_step(
         "get", f"{BASE_URL}/testcol/42/status/", status_template(status="done"),
+    )
+    # Then metadata update
+    status_xml = status_template(
+        status="done",
+        status_detail="",
+        swhid="swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74",
+    )
+    scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
+    # internal deposit client does call status, then update metadata then status api
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
+    )
+    scenario.add_step(
+        "put", f"{BASE_URL}/testcol/42/metadata/", status_xml,
+    )
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
     )
 
     scenario.install_mock(requests_mock)
@@ -238,13 +289,77 @@ def test_deposit_delays(
         "| 'total_time' = 30.00s\n"
         "| 'upload_time' = 0.00s\n"
         "| 'validation_time' = 10.00s\n"
+        "DEPOSIT OK - Deposit Metadata update took 0.00s and succeeded.\n"
+        "| 'total_time' = 30.00s\n"
+        "| 'update_time' = 0.00s\n"
     )
     assert result.exit_code == 0, f"Unexpected output: {result.output}"
+
+
+def test_deposit_then_metadata_update_failed(
+    requests_mock, mocker, sample_archive, sample_metadata, mocked_time
+):
+    """Deposit creation passed, deposit metadata update failed
+
+    """
+    scenario = WebScenario()
+
+    scenario.add_step(
+        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
+    )
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+    )
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="loading"),
+    )
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="done"),
+    )
+    # Then metadata update calls
+    failed_status_xml = status_template(
+        status="failed",  # lying here
+        status_detail="Failure to ingest",
+        swhid="swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74",
+    )
+    scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", failed_status_xml)
+    scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", failed_status_xml)
+
+    scenario.install_mock(requests_mock)
+
+    result = invoke(
+        [
+            "check-deposit",
+            *COMMON_OPTIONS,
+            "single",
+            "--archive",
+            sample_archive,
+            "--metadata",
+            sample_metadata,
+        ],
+        catch_exceptions=True,
+    )
+
+    assert result.output == (
+        "DEPOSIT OK - Deposit took 30.00s and succeeded.\n"
+        "| 'load_time' = 20.00s\n"
+        "| 'total_time' = 30.00s\n"
+        "| 'upload_time' = 0.00s\n"
+        "| 'validation_time' = 10.00s\n"
+        "DEPOSIT CRITICAL - Deposit Metadata update failed: You can only update "
+        "metadata on deposit with status 'done' \n"
+        "| 'total_time' = 30.00s\n"
+        "| 'update_time' = 0.00s\n"
+    )
+    assert result.exit_code == 2, f"Unexpected output: {result.output}"
 
 
 def test_deposit_delay_warning(
     requests_mock, mocker, sample_archive, sample_metadata, mocked_time
 ):
+    """Deposit creation exceeded delays, no deposit update occurred.
+
+    """
     scenario = WebScenario()
 
     scenario.add_step(
