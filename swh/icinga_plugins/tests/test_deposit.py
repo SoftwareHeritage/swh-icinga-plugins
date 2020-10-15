@@ -114,7 +114,7 @@ def test_deposit_immediate_success(
     scenario = WebScenario()
 
     scenario.add_step(
-        "post", BASE_URL + "/testcol/", ENTRY_TEMPLATE.format(status="done")
+        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="done")
     )
 
     scenario.install_mock(requests_mock)
@@ -147,21 +147,21 @@ def test_deposit_delays(
     scenario = WebScenario()
 
     scenario.add_step(
-        "post", BASE_URL + "/testcol/", ENTRY_TEMPLATE.format(status="deposited")
+        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="verified", status_detail=""),
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="loading", status_detail=""),
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="done", status_detail=""),
     )
 
@@ -195,16 +195,16 @@ def test_deposit_delay_warning(
     scenario = WebScenario()
 
     scenario.add_step(
-        "post", BASE_URL + "/testcol/", ENTRY_TEMPLATE.format(status="deposited")
+        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="verified", status_detail=""),
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="done", status_detail=""),
     )
 
@@ -241,16 +241,16 @@ def test_deposit_delay_critical(
     scenario = WebScenario()
 
     scenario.add_step(
-        "post", BASE_URL + "/testcol/", ENTRY_TEMPLATE.format(status="deposited")
+        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="verified", status_detail=""),
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="done", status_detail=""),
         callback=lambda: time.sleep(60),
     )
@@ -289,19 +289,19 @@ def test_deposit_timeout(
 
     scenario.add_step(
         "post",
-        BASE_URL + "/testcol/",
+        f"{BASE_URL}/testcol/",
         ENTRY_TEMPLATE.format(status="deposited"),
         callback=lambda: time.sleep(1500),
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="verified", status_detail=""),
         callback=lambda: time.sleep(1500),
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="loading", status_detail=""),
         callback=lambda: time.sleep(1500),
     )
@@ -337,11 +337,11 @@ def test_deposit_rejected(
     scenario = WebScenario()
 
     scenario.add_step(
-        "post", BASE_URL + "/testcol/", ENTRY_TEMPLATE.format(status="deposited")
+        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="rejected", status_detail="booo"),
     )
 
@@ -375,21 +375,21 @@ def test_deposit_failed(
     scenario = WebScenario()
 
     scenario.add_step(
-        "post", BASE_URL + "/testcol/", ENTRY_TEMPLATE.format(status="deposited")
+        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="verified", status_detail=""),
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="loading", status_detail=""),
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="failed", status_detail="booo"),
     )
 
@@ -424,21 +424,21 @@ def test_deposit_unexpected_status(
     scenario = WebScenario()
 
     scenario.add_step(
-        "post", BASE_URL + "/testcol/", ENTRY_TEMPLATE.format(status="deposited")
+        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="verified", status_detail=""),
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="loading", status_detail=""),
     )
     scenario.add_step(
         "get",
-        BASE_URL + "/testcol/42/status/",
+        f"{BASE_URL}/testcol/42/status/",
         STATUS_TEMPLATE.format(status="what", status_detail="booo"),
     )
 
