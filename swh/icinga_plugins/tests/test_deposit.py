@@ -1,4 +1,4 @@
-# Copyright (C) 2019  The Software Heritage developers
+# Copyright (C) 2019-2020  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -7,6 +7,7 @@ import io
 import os
 import tarfile
 import time
+from typing import Optional
 
 from click.testing import CliRunner
 import pytest
@@ -63,9 +64,67 @@ STATUS_TEMPLATE = """
        xmlns:dcterms="http://purl.org/dc/terms/">
     <deposit_id>42</deposit_id>
     <deposit_status>{status}</deposit_status>
-    <deposit_status_detail>{status_detail}</deposit_status_detail>
+    <deposit_status_detail>{status_detail}</deposit_status_detail>%s
 </entry>
 """
+
+
+def status_template(
+    status: str, status_detail: str = "", swhid: Optional[str] = None
+) -> str:
+    """Generate a proper status template out of status, status_detail and optional swhid
+
+    """
+    if swhid is not None:
+        template = STATUS_TEMPLATE % f"\n    <deposit_swh_id>{swhid}</deposit_swh_id>"
+        return template.format(status=status, status_detail=status_detail, swhid=swhid)
+    template = STATUS_TEMPLATE % ""
+    return template.format(status=status, status_detail=status_detail)
+
+
+def test_status_template():
+    actual_status = status_template(status="deposited")
+    assert (
+        actual_status
+        == """
+<entry xmlns="http://www.w3.org/2005/Atom"
+       xmlns:sword="http://purl.org/net/sword/"
+       xmlns:dcterms="http://purl.org/dc/terms/">
+    <deposit_id>42</deposit_id>
+    <deposit_status>deposited</deposit_status>
+    <deposit_status_detail></deposit_status_detail>
+</entry>
+"""
+    )
+
+    actual_status = status_template(status="verified", status_detail="detail")
+    assert (
+        actual_status
+        == """
+<entry xmlns="http://www.w3.org/2005/Atom"
+       xmlns:sword="http://purl.org/net/sword/"
+       xmlns:dcterms="http://purl.org/dc/terms/">
+    <deposit_id>42</deposit_id>
+    <deposit_status>verified</deposit_status>
+    <deposit_status_detail>detail</deposit_status_detail>
+</entry>
+"""
+    )
+
+    actual_status = status_template(status="done", swhid="10")
+    assert (
+        actual_status
+        == """
+<entry xmlns="http://www.w3.org/2005/Atom"
+       xmlns:sword="http://purl.org/net/sword/"
+       xmlns:dcterms="http://purl.org/dc/terms/">
+    <deposit_id>42</deposit_id>
+    <deposit_status>done</deposit_status>
+    <deposit_status_detail></deposit_status_detail>
+    <deposit_swh_id>10</deposit_swh_id>
+</entry>
+"""
+    )
 
 
 @pytest.fixture(scope="session")
@@ -150,19 +209,13 @@ def test_deposit_delays(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
-        "get",
-        f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="verified", status_detail=""),
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
     )
     scenario.add_step(
-        "get",
-        f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="loading", status_detail=""),
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="loading"),
     )
     scenario.add_step(
-        "get",
-        f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="done", status_detail=""),
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="done"),
     )
 
     scenario.install_mock(requests_mock)
@@ -198,14 +251,10 @@ def test_deposit_delay_warning(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
-        "get",
-        f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="verified", status_detail=""),
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
     )
     scenario.add_step(
-        "get",
-        f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="done", status_detail=""),
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="done"),
     )
 
     scenario.install_mock(requests_mock)
@@ -244,14 +293,12 @@ def test_deposit_delay_critical(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
-        "get",
-        f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="verified", status_detail=""),
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
     )
     scenario.add_step(
         "get",
         f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="done", status_detail=""),
+        status_template(status="done"),
         callback=lambda: time.sleep(60),
     )
 
@@ -296,13 +343,13 @@ def test_deposit_timeout(
     scenario.add_step(
         "get",
         f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="verified", status_detail=""),
+        status_template(status="verified"),
         callback=lambda: time.sleep(1500),
     )
     scenario.add_step(
         "get",
         f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="loading", status_detail=""),
+        status_template(status="loading"),
         callback=lambda: time.sleep(1500),
     )
 
@@ -342,7 +389,7 @@ def test_deposit_rejected(
     scenario.add_step(
         "get",
         f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="rejected", status_detail="booo"),
+        status_template(status="rejected", status_detail="booo"),
     )
 
     scenario.install_mock(requests_mock)
@@ -378,19 +425,15 @@ def test_deposit_failed(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
-        "get",
-        f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="verified", status_detail=""),
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+    )
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="loading"),
     )
     scenario.add_step(
         "get",
         f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="loading", status_detail=""),
-    )
-    scenario.add_step(
-        "get",
-        f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="failed", status_detail="booo"),
+        status_template(status="failed", status_detail="booo"),
     )
 
     scenario.install_mock(requests_mock)
@@ -427,19 +470,15 @@ def test_deposit_unexpected_status(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
-        "get",
-        f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="verified", status_detail=""),
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+    )
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="loading"),
     )
     scenario.add_step(
         "get",
         f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="loading", status_detail=""),
-    )
-    scenario.add_step(
-        "get",
-        f"{BASE_URL}/testcol/42/status/",
-        STATUS_TEMPLATE.format(status="what", status_detail="booo"),
+        status_template(status="what", status_detail="booo"),
     )
 
     scenario.install_mock(requests_mock)
