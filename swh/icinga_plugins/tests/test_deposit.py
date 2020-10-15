@@ -197,7 +197,7 @@ def test_deposit_immediate_success(
         "| 'upload_time' = 0.00s\n"
         "| 'validation_time' = 0.00s\n"
     )
-    assert result.exit_code == 0, result.output
+    assert result.exit_code == 0, f"Unexpected output: {result.output}"
 
 
 def test_deposit_delays(
@@ -239,7 +239,7 @@ def test_deposit_delays(
         "| 'upload_time' = 0.00s\n"
         "| 'validation_time' = 10.00s\n"
     )
-    assert result.exit_code == 0, result.output
+    assert result.exit_code == 0, f"Unexpected output: {result.output}"
 
 
 def test_deposit_delay_warning(
@@ -281,7 +281,7 @@ def test_deposit_delay_warning(
         "| 'upload_time' = 0.00s\n"
         "| 'validation_time' = 10.00s\n"
     )
-    assert result.exit_code == 1, result.output
+    assert result.exit_code == 1, f"Unexpected output: {result.output}"
 
 
 def test_deposit_delay_critical(
@@ -326,7 +326,7 @@ def test_deposit_delay_critical(
         "| 'upload_time' = 0.00s\n"
         "| 'validation_time' = 10.00s\n"
     )
-    assert result.exit_code == 2, result.output
+    assert result.exit_code == 2, f"Unexpected output: {result.output}"
 
 
 def test_deposit_timeout(
@@ -375,7 +375,7 @@ def test_deposit_timeout(
         "| 'upload_time' = 1500.00s\n"
         "| 'validation_time' = 1510.00s\n"
     )
-    assert result.exit_code == 2, result.output
+    assert result.exit_code == 2, f"Unexpected output: {result.output}"
 
 
 def test_deposit_rejected(
@@ -413,7 +413,7 @@ def test_deposit_rejected(
         "| 'upload_time' = 0.00s\n"
         "| 'validation_time' = 10.00s\n"
     )
-    assert result.exit_code == 2, result.output
+    assert result.exit_code == 2, f"Unexpected output: {result.output}"
 
 
 def test_deposit_failed(
@@ -458,7 +458,7 @@ def test_deposit_failed(
         "| 'upload_time' = 0.00s\n"
         "| 'validation_time' = 10.00s\n"
     )
-    assert result.exit_code == 2, result.output
+    assert result.exit_code == 2, f"Unexpected output: {result.output}"
 
 
 def test_deposit_unexpected_status(
@@ -503,4 +503,4 @@ def test_deposit_unexpected_status(
         "| 'upload_time' = 0.00s\n"
         "| 'validation_time' = 10.00s\n"
     )
-    assert result.exit_code == 2, result.output
+    assert result.exit_code == 2, f"Unexpected output: {result.output}"
