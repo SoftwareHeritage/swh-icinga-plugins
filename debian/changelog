@@ -1,8 +1,14 @@
-swh.icingaplugins (0.1.0-1~swh1~bpo10+1) buster-swh; urgency=medium
+swh.icingaplugins (0.2.0-1~swh1) unstable-swh; urgency=medium
 
-  * Rebuild for buster-swh
+  * New upstream release 0.2.0     - (tagged by Antoine R. Dumont
+    (@ardumont) <ardumont@softwareheritage.org> on 2020-10-16 09:34:39
+    +0200)
+  * Upstream changes:     - v0.2.0     - Add deposit metadata update
+    step in deposit icinga check     - test_deposit: Refactor helper
+    functions to improve maintenance     - tox.ini: pin black to the pre-
+    commit version (19.10b0) to avoid flip-flops
 
- -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Tue, 20 Oct 2020 16:36:53 +0000
+ -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Tue, 20 Oct 2020 16:41:57 +0000
 
 swh.icingaplugins (0.1.0-1~swh1) unstable-swh; urgency=medium
 
