@@ -11,7 +11,7 @@ with specifications of what endpoints should be called and in what order."""
 
 from dataclasses import dataclass
 import json
-from typing import List, Set, Optional, Callable
+from typing import Callable, List, Optional, Set
 
 import requests_mock
 
@@ -68,8 +68,8 @@ class WebScenario:
         """
         for endpoint in self._endpoints:
             mocker.register_uri(
-                endpoint.method.upper(), endpoint.url,
-                text=self._request_callback)
+                endpoint.method.upper(), endpoint.url, text=self._request_callback
+            )
 
     def _request_callback(self, request, context):
         step = self._steps[self._current_step]
