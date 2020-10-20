@@ -1,7 +1,6 @@
 psycopg2
 requests
-vcversioner
-swh.core[http]
+swh.core[http]>=0.3
 swh.deposit
 swh.storage>=v0.0.162
 

@@ -1,8 +1,10 @@
-swh.icingaplugins (0.0.2-1+swh4~bpo10+1) buster-swh; urgency=medium
+swh.icingaplugins (0.1.0-1~swh1) unstable-swh; urgency=medium
 
-  * Rebuild for buster-swh
+  * New upstream release 0.1.0     - (tagged by David Douard
+    <david.douard@sdfa3.org> on 2020-09-25 11:48:28 +0200)
+  * Upstream changes:     - v0.1.0
 
- -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Wed, 22 Jan 2020 12:22:30 +0000
+ -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Tue, 20 Oct 2020 16:35:53 +0000
 
 swh.icingaplugins (0.0.2-1+swh4) unstable-swh; urgency=medium
 
