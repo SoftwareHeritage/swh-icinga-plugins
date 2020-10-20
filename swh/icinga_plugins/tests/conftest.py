@@ -21,5 +21,5 @@ def mocked_time(mocker):
     def fake_time():
         return start_time + time_offset
 
-    mocker.patch('time.sleep', side_effect=fake_sleep)
-    mocker.patch('time.time', side_effect=fake_time)
+    mocker.patch("time.sleep", side_effect=fake_sleep)
+    mocker.patch("time.time", side_effect=fake_time)

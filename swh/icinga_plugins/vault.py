@@ -17,18 +17,18 @@ class NoDirectory(Exception):
 
 
 class VaultCheck(BaseCheck):
-    TYPE = 'VAULT'
+    TYPE = "VAULT"
     DEFAULT_WARNING_THRESHOLD = 0
     DEFAULT_CRITICAL_THRESHOLD = 3600
 
     def __init__(self, obj):
         super().__init__(obj)
-        self._swh_storage = get_storage('remote', url=obj['swh_storage_url'])
-        self._swh_web_url = obj['swh_web_url']
-        self._poll_interval = obj['poll_interval']
+        self._swh_storage = get_storage("remote", url=obj["swh_storage_url"])
+        self._swh_web_url = obj["swh_web_url"]
+        self._poll_interval = obj["poll_interval"]
 
     def _url_for_dir(self, dir_id):
-        return self._swh_web_url + f'/api/1/vault/directory/{dir_id.hex()}/'
+        return self._swh_web_url + f"/api/1/vault/directory/{dir_id.hex()}/"
 
     def _pick_directory(self):
         dir_ = self._swh_storage.directory_get_random()
@@ -47,9 +47,7 @@ class VaultCheck(BaseCheck):
         try:
             dir_id = self._pick_uncached_directory()
         except NoDirectory:
-            self.print_result(
-                'CRITICAL',
-                'No directory exists in the archive.')
+            self.print_result("CRITICAL", "No directory exists in the archive.")
             return 2
 
         start_time = time.time()
@@ -57,7 +55,7 @@ class VaultCheck(BaseCheck):
         response = requests.post(self._url_for_dir(dir_id))
         assert response.status_code == 200, (response, response.text)
         result = response.json()
-        while result['status'] in ('new', 'pending'):
+        while result["status"] in ("new", "pending"):
             time.sleep(self._poll_interval)
             response = requests.get(self._url_for_dir(dir_id))
             assert response.status_code == 200, (response, response.text)
@@ -67,32 +65,36 @@ class VaultCheck(BaseCheck):
 
             if total_time > self.critical_threshold:
                 self.print_result(
-                    'CRITICAL',
-                    f'cooking directory {dir_id.hex()} took more than '
-                    f'{total_time:.2f}s and has status: '
+                    "CRITICAL",
+                    f"cooking directory {dir_id.hex()} took more than "
+                    f"{total_time:.2f}s and has status: "
                     f'{result["progress_message"]}',
-                    total_time=total_time)
+                    total_time=total_time,
+                )
                 return 2
 
-        if result['status'] == 'done':
+        if result["status"] == "done":
             (status_code, status) = self.get_status(total_time)
             self.print_result(
                 status,
-                f'cooking directory {dir_id.hex()} took {total_time:.2f}s '
-                f'and succeeded.',
-                total_time=total_time)
+                f"cooking directory {dir_id.hex()} took {total_time:.2f}s "
+                f"and succeeded.",
+                total_time=total_time,
+            )
             return status_code
-        elif result['status'] == 'failed':
+        elif result["status"] == "failed":
             self.print_result(
-                'CRITICAL',
-                f'cooking directory {dir_id.hex()} took {total_time:.2f}s '
+                "CRITICAL",
+                f"cooking directory {dir_id.hex()} took {total_time:.2f}s "
                 f'and failed with: {result["progress_message"]}',
-                total_time=total_time)
+                total_time=total_time,
+            )
             return 2
         else:
             self.print_result(
-                'CRITICAL',
-                f'cooking directory {dir_id.hex()} took {total_time:.2f}s '
+                "CRITICAL",
+                f"cooking directory {dir_id.hex()} took {total_time:.2f}s "
                 f'and resulted in unknown status: {result["status"]}',
-                total_time=total_time)
+                total_time=total_time,
+            )
             return 2
