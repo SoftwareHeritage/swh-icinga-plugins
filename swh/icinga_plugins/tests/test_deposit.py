@@ -47,11 +47,12 @@ xmlns:codemeta="https://doi.org/10.5063/SCHEMA/CODEMETA-2.0">
 ENTRY_TEMPLATE = """
 <entry xmlns="http://www.w3.org/2005/Atom"
        xmlns:sword="http://purl.org/net/sword/"
+       xmlns:swh="https://www.softwareheritage.org/schema/2018/deposit"
        xmlns:dcterms="http://purl.org/dc/terms/">
-    <deposit_id>42</deposit_id>
-    <deposit_date>2019-12-19 18:11:00</deposit_date>
-    <deposit_archive>foo.tar.gz</deposit_archive>
-    <deposit_status>{status}</deposit_status>
+    <swh:deposit_id>42</swh:deposit_id>
+    <swh:deposit_date>2019-12-19 18:11:00</swh:deposit_date>
+    <swh:deposit_archive>foo.tar.gz</swh:deposit_archive>
+    <swh:deposit_status>{status}</swh:deposit_status>
 
     <sword:packaging>http://purl.org/net/sword/package/SimpleZip</sword:packaging>
 </entry>
@@ -61,10 +62,11 @@ ENTRY_TEMPLATE = """
 STATUS_TEMPLATE = """
 <entry xmlns="http://www.w3.org/2005/Atom"
        xmlns:sword="http://purl.org/net/sword/"
+       xmlns:swh="https://www.softwareheritage.org/schema/2018/deposit"
        xmlns:dcterms="http://purl.org/dc/terms/">
-    <deposit_id>42</deposit_id>
-    <deposit_status>{status}</deposit_status>
-    <deposit_status_detail>{status_detail}</deposit_status_detail>%s
+    <swh:deposit_id>42</swh:deposit_id>
+    <swh:deposit_status>{status}</swh:deposit_status>
+    <swh:deposit_status_detail>{status_detail}</swh:deposit_status_detail>%s
 </entry>
 """
 
@@ -76,7 +78,9 @@ def status_template(
 
     """
     if swhid is not None:
-        template = STATUS_TEMPLATE % f"\n    <deposit_swh_id>{swhid}</deposit_swh_id>"
+        template = (
+            STATUS_TEMPLATE % f"\n    <swh:deposit_swh_id>{swhid}</swh:deposit_swh_id>"
+        )
         return template.format(status=status, status_detail=status_detail, swhid=swhid)
     template = STATUS_TEMPLATE % ""
     return template.format(status=status, status_detail=status_detail)
@@ -89,10 +93,11 @@ def test_status_template():
         == """
 <entry xmlns="http://www.w3.org/2005/Atom"
        xmlns:sword="http://purl.org/net/sword/"
+       xmlns:swh="https://www.softwareheritage.org/schema/2018/deposit"
        xmlns:dcterms="http://purl.org/dc/terms/">
-    <deposit_id>42</deposit_id>
-    <deposit_status>deposited</deposit_status>
-    <deposit_status_detail></deposit_status_detail>
+    <swh:deposit_id>42</swh:deposit_id>
+    <swh:deposit_status>deposited</swh:deposit_status>
+    <swh:deposit_status_detail></swh:deposit_status_detail>
 </entry>
 """
     )
@@ -103,10 +108,11 @@ def test_status_template():
         == """
 <entry xmlns="http://www.w3.org/2005/Atom"
        xmlns:sword="http://purl.org/net/sword/"
+       xmlns:swh="https://www.softwareheritage.org/schema/2018/deposit"
        xmlns:dcterms="http://purl.org/dc/terms/">
-    <deposit_id>42</deposit_id>
-    <deposit_status>verified</deposit_status>
-    <deposit_status_detail>detail</deposit_status_detail>
+    <swh:deposit_id>42</swh:deposit_id>
+    <swh:deposit_status>verified</swh:deposit_status>
+    <swh:deposit_status_detail>detail</swh:deposit_status_detail>
 </entry>
 """
     )
@@ -117,11 +123,12 @@ def test_status_template():
         == """
 <entry xmlns="http://www.w3.org/2005/Atom"
        xmlns:sword="http://purl.org/net/sword/"
+       xmlns:swh="https://www.softwareheritage.org/schema/2018/deposit"
        xmlns:dcterms="http://purl.org/dc/terms/">
-    <deposit_id>42</deposit_id>
-    <deposit_status>done</deposit_status>
-    <deposit_status_detail></deposit_status_detail>
-    <deposit_swh_id>10</deposit_swh_id>
+    <swh:deposit_id>42</swh:deposit_id>
+    <swh:deposit_status>done</swh:deposit_status>
+    <swh:deposit_status_detail></swh:deposit_status_detail>
+    <swh:deposit_swh_id>10</swh:deposit_swh_id>
 </entry>
 """
     )
