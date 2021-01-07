@@ -204,7 +204,7 @@ def test_deposit_immediate_success(
         "get", f"{BASE_URL}/testcol/42/status/", status_xml,
     )
     scenario.add_step(
-        "put", f"{BASE_URL}/testcol/42/metadata/", status_xml,
+        "put", f"{BASE_URL}/testcol/42/atom/", status_xml,
     )
     scenario.add_step(
         "get", f"{BASE_URL}/testcol/42/status/", status_xml,
@@ -270,7 +270,7 @@ def test_deposit_delays(
         "get", f"{BASE_URL}/testcol/42/status/", status_xml,
     )
     scenario.add_step(
-        "put", f"{BASE_URL}/testcol/42/metadata/", status_xml,
+        "put", f"{BASE_URL}/testcol/42/atom/", status_xml,
     )
     scenario.add_step(
         "get", f"{BASE_URL}/testcol/42/status/", status_xml,
