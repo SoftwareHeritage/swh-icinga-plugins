@@ -1,8 +1,11 @@
-swh.icingaplugins (0.2.1-1~swh1~bpo10+1) buster-swh; urgency=medium
+swh.icingaplugins (0.2.2-1~swh1) unstable-swh; urgency=medium
 
-  * Rebuild for buster-swh
+  * New upstream release 0.2.2     - (tagged by Antoine R. Dumont
+    (@ardumont) <ardumont@softwareheritage.org> on 2021-01-14 13:17:42
+    +0100)
+  * Upstream changes:     - v0.2.2     - Fix test deposit
 
- -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Tue, 20 Oct 2020 17:45:19 +0000
+ -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Thu, 14 Jan 2021 12:19:05 +0000
 
 swh.icingaplugins (0.2.1-1~swh1) unstable-swh; urgency=medium
 
