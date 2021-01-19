@@ -1,3 +1,12 @@
+swh.icingaplugins (0.2.3-1~swh1) unstable-swh; urgency=medium
+
+  * New upstream release 0.2.3     - (tagged by Vincent SELLIER
+    <vincent.sellier@softwareheritage.org> on 2021-01-19 10:58:01 +0100)
+  * Upstream changes:     - v0.2.3     - Remove the deprecated
+    external_identifer from metadata
+
+ -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Tue, 19 Jan 2021 10:00:42 +0000
+
 swh.icingaplugins (0.2.2-1~swh1) unstable-swh; urgency=medium
 
   * New upstream release 0.2.2     - (tagged by Antoine R. Dumont
