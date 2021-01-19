@@ -3,7 +3,6 @@
 xmlns:codemeta="https://doi.org/10.5063/SCHEMA/CODEMETA-2.0">
   <title>Je suis GPL</title>
   <client>swh</client>
-  <external_identifier>je-suis-gpl</external_identifier>
   <codemeta:url>https://forge.softwareheritage.org/source/jesuisgpl/</codemeta:url>
   <codemeta:dateCreated>2018-01-05</codemeta:dateCreated>
   <codemeta:description>Je suis GPL is a modified version of GNU Hello whose
