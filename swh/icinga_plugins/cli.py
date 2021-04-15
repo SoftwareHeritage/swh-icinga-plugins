@@ -56,6 +56,37 @@ def check_vault_directory(ctx):
     sys.exit(VaultCheck(ctx.obj).main())
 
 
+@icinga_cli_group.group(name="check-savecodenow")
+@click.option(
+    "--swh-web-url", type=str, required=True, help="URL to an swh-web instance"
+)
+@click.option(
+    "--poll-interval",
+    type=int,
+    default=10,
+    help="Interval (in seconds) between two polls to the API, "
+    "to check for save code now status.",
+)
+@click.pass_context
+def check_scn(ctx, **kwargs):
+    ctx.obj.update(kwargs)
+
+
+@check_scn.command(name="origin")
+@click.argument("origin", type=str)
+@click.option("--visit-type", type=str, required=True, help="Visit type for origin")
+@click.pass_context
+def check_scn_origin(ctx, origin, visit_type):
+    """Requests a save code now via the api for a given origin with type visit_type, waits
+    for its completion, report approximate time of completion (failed or succeeded) and
+    warn if threshold exceeded.
+
+    """
+    from .save_code_now import SaveCodeNowCheck
+
+    sys.exit(SaveCodeNowCheck(ctx.obj, origin, visit_type).main())
+
+
 @icinga_cli_group.group(name="check-deposit")
 @click.option(
     "--server",
