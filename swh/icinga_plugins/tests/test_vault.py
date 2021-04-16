@@ -1,13 +1,11 @@
-# Copyright (C) 2019  The Software Heritage developers
+# Copyright (C) 2019-2021  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
 import time
 
-from click.testing import CliRunner
-
-from swh.icinga_plugins.cli import icinga_cli_group
+from swh.icinga_plugins.tests.utils import invoke
 
 from .web_scenario import WebScenario
 
@@ -49,15 +47,6 @@ class FakeStorage:
 
     def directory_get_random(self):
         return bytes.fromhex(dir_id)
-
-
-def invoke(args, catch_exceptions=False):
-    runner = CliRunner()
-    result = runner.invoke(icinga_cli_group, args)
-    if not catch_exceptions and result.exception:
-        print(result.output)
-        raise result.exception
-    return result
 
 
 def test_vault_immediate_success(requests_mock, mocker, mocked_time):
