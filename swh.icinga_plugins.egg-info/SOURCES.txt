@@ -36,9 +36,12 @@ swh/icinga_plugins/base_check.py
 swh/icinga_plugins/cli.py
 swh/icinga_plugins/deposit.py
 swh/icinga_plugins/py.typed
+swh/icinga_plugins/save_code_now.py
 swh/icinga_plugins/vault.py
 swh/icinga_plugins/tests/__init__.py
 swh/icinga_plugins/tests/conftest.py
 swh/icinga_plugins/tests/test_deposit.py
+swh/icinga_plugins/tests/test_save_code_now.py
 swh/icinga_plugins/tests/test_vault.py
+swh/icinga_plugins/tests/utils.py
 swh/icinga_plugins/tests/web_scenario.py
