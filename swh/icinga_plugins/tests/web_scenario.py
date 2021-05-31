@@ -69,7 +69,7 @@ class WebScenario:
         for endpoint in self._endpoints:
             mocker.register_uri(
                 endpoint.method.upper(),
-                endpoint.url,  # type: ignore # https://github.com/jamielennox/requests-mock/pull/173  # noqa
+                endpoint.url,
                 text=self._request_callback,  # type: ignore  # stubs are too strict
             )
 
