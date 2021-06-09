@@ -1,2 +1,5 @@
+click
 psycopg2
 requests
+types-click
+types-requests
