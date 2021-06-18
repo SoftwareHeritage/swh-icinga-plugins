@@ -1,8 +1,11 @@
-swh.icingaplugins (0.3.0-1~swh1~bpo10+1) buster-swh; urgency=medium
+swh.icingaplugins (0.3.1-1~swh1) unstable-swh; urgency=medium
 
-  * Rebuild for buster-swh
+  * New upstream release 0.3.1     - (tagged by Nicolas Dandrimont
+    <nicolas@dandrimont.eu> on 2021-06-18 14:39:11 +0200)
+  * Upstream changes:     - Release swh.icinga.plugins v0.3.1     - Add
+    missing f-string in assertion     - CI related improvements
 
- -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Fri, 16 Apr 2021 13:59:21 +0000
+ -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Fri, 18 Jun 2021 12:43:49 +0000
 
 swh.icingaplugins (0.3.0-1~swh1) unstable-swh; urgency=medium
 

@@ -61,7 +61,7 @@ class SaveCodeNowCheck(BaseCheck):
             response = requests.get(scn_url)
             assert (
                 response.status_code == 200
-            ), "Unexpected response: {response}, {response.text}"
+            ), f"Unexpected response: {response}, {response.text}"
             raw_result: List[Dict] = response.json()
             assert len(raw_result) > 0, f"Unexpected result: {raw_result}"
 
