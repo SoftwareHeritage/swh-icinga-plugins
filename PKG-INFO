@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: swh.icinga_plugins
-Version: 0.3.0
+Version: 0.3.1
 Summary: Icinga plugins for Software Heritage infrastructure monitoring
 Home-page: https://forge.softwareheritage.org/diffusion/swh-icinga-plugins
 Author: Software Heritage developers
@@ -9,11 +9,6 @@ License: UNKNOWN
 Project-URL: Bug Reports, https://forge.softwareheritage.org/maniphest
 Project-URL: Funding, https://www.softwareheritage.org/donate
 Project-URL: Source, https://forge.softwareheritage.org/source/swh-icinga-plugins
-Description: swh-icinga-plugins
-        ==================
-        
-        Scripts for end-to-end monitoring of the SWH infrastructure
-        
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: Intended Audience :: Developers
@@ -23,3 +18,12 @@ Classifier: Development Status :: 3 - Alpha
 Requires-Python: >=3.7
 Description-Content-Type: text/markdown
 Provides-Extra: testing
+License-File: LICENSE
+License-File: AUTHORS
+
+swh-icinga-plugins
+==================
+
+Scripts for end-to-end monitoring of the SWH infrastructure
+
+
