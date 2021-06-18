@@ -1,8 +1,11 @@
-swh.icingaplugins (0.3.1-1~swh1~bpo10+1) buster-swh; urgency=medium
+swh.icingaplugins (0.3.2-1~swh1) unstable-swh; urgency=medium
 
-  * Rebuild for buster-swh
+  * New upstream release 0.3.2     - (tagged by Nicolas Dandrimont
+    <nicolas@dandrimont.eu> on 2021-06-18 15:29:50 +0200)
+  * Upstream changes:     - Release swh.icinga_plugins 0.3.2     - Don't
+    require type stub modules at runtime
 
- -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Fri, 18 Jun 2021 12:44:49 +0000
+ -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Fri, 18 Jun 2021 13:34:21 +0000
 
 swh.icingaplugins (0.3.1-1~swh1) unstable-swh; urgency=medium
 
