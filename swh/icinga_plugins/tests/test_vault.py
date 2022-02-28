@@ -11,6 +11,9 @@ from .web_scenario import WebScenario
 
 dir_id = "ab" * 20
 
+url_api = f"mock://swh-web.example.org/api/1/vault/directory/{dir_id}/"
+url_fetch = f"mock://swh-web.example.org/api/1/vault/directory/{dir_id}/raw/"
+
 response_pending = {
     "obj_id": dir_id,
     "obj_type": "directory",
@@ -19,7 +22,14 @@ response_pending = {
 }
 
 response_done = {
-    "fetch_url": f"/api/1/vault/directory/{dir_id}/raw/",
+    "fetch_url": url_fetch,
+    "id": 9,
+    "obj_id": dir_id,
+    "obj_type": "directory",
+    "status": "done",
+}
+
+response_done_no_fetch = {
     "id": 9,
     "obj_id": dir_id,
     "obj_type": "directory",
@@ -52,11 +62,10 @@ class FakeStorage:
 def test_vault_immediate_success(requests_mock, mocker, mocked_time):
     scenario = WebScenario()
 
-    url = f"mock://swh-web.example.org/api/1/vault/directory/{dir_id}/"
-
-    scenario.add_step("get", url, {}, status_code=404)
-    scenario.add_step("post", url, response_pending)
-    scenario.add_step("get", url, response_done)
+    scenario.add_step("get", url_api, {}, status_code=404)
+    scenario.add_step("post", url_api, response_pending)
+    scenario.add_step("get", url_api, response_done)
+    scenario.add_step("get", url_fetch, "xx" * 40)
 
     scenario.install_mock(requests_mock)
 
@@ -85,12 +94,11 @@ def test_vault_immediate_success(requests_mock, mocker, mocked_time):
 def test_vault_delayed_success(requests_mock, mocker, mocked_time):
     scenario = WebScenario()
 
-    url = f"mock://swh-web.example.org/api/1/vault/directory/{dir_id}/"
-
-    scenario.add_step("get", url, {}, status_code=404)
-    scenario.add_step("post", url, response_pending)
-    scenario.add_step("get", url, response_pending)
-    scenario.add_step("get", url, response_done)
+    scenario.add_step("get", url_api, {}, status_code=404)
+    scenario.add_step("post", url_api, response_pending)
+    scenario.add_step("get", url_api, response_pending)
+    scenario.add_step("get", url_api, response_done)
+    scenario.add_step("get", url_fetch, "xx" * 40)
 
     scenario.install_mock(requests_mock)
 
@@ -119,11 +127,9 @@ def test_vault_delayed_success(requests_mock, mocker, mocked_time):
 def test_vault_failure(requests_mock, mocker, mocked_time):
     scenario = WebScenario()
 
-    url = f"mock://swh-web.example.org/api/1/vault/directory/{dir_id}/"
-
-    scenario.add_step("get", url, {}, status_code=404)
-    scenario.add_step("post", url, response_pending)
-    scenario.add_step("get", url, response_failed)
+    scenario.add_step("get", url_api, {}, status_code=404)
+    scenario.add_step("post", url_api, response_pending)
+    scenario.add_step("get", url_api, response_failed)
 
     scenario.install_mock(requests_mock)
 
@@ -153,11 +159,9 @@ def test_vault_failure(requests_mock, mocker, mocked_time):
 def test_vault_unknown_status(requests_mock, mocker, mocked_time):
     scenario = WebScenario()
 
-    url = f"mock://swh-web.example.org/api/1/vault/directory/{dir_id}/"
-
-    scenario.add_step("get", url, {}, status_code=404)
-    scenario.add_step("post", url, response_pending)
-    scenario.add_step("get", url, response_unknown_status)
+    scenario.add_step("get", url_api, {}, status_code=404)
+    scenario.add_step("post", url_api, response_pending)
+    scenario.add_step("get", url_api, response_unknown_status)
 
     scenario.install_mock(requests_mock)
 
@@ -187,12 +191,12 @@ def test_vault_unknown_status(requests_mock, mocker, mocked_time):
 def test_vault_timeout(requests_mock, mocker, mocked_time):
     scenario = WebScenario()
 
-    url = f"mock://swh-web.example.org/api/1/vault/directory/{dir_id}/"
-
-    scenario.add_step("get", url, {}, status_code=404)
-    scenario.add_step("post", url, response_pending)
-    scenario.add_step("get", url, response_pending)
-    scenario.add_step("get", url, response_pending, callback=lambda: time.sleep(4000))
+    scenario.add_step("get", url_api, {}, status_code=404)
+    scenario.add_step("post", url_api, response_pending)
+    scenario.add_step("get", url_api, response_pending)
+    scenario.add_step(
+        "get", url_api, response_pending, callback=lambda: time.sleep(4000)
+    )
 
     scenario.install_mock(requests_mock)
 
@@ -224,12 +228,11 @@ def test_vault_cached_directory(requests_mock, mocker, mocked_time):
     test that vault_check requests another one."""
     scenario = WebScenario()
 
-    url = f"mock://swh-web.example.org/api/1/vault/directory/{dir_id}/"
-
-    scenario.add_step("get", url, {}, status_code=200)
-    scenario.add_step("get", url, {}, status_code=404)
-    scenario.add_step("post", url, response_pending)
-    scenario.add_step("get", url, response_done)
+    scenario.add_step("get", url_api, {}, status_code=200)
+    scenario.add_step("get", url_api, {}, status_code=404)
+    scenario.add_step("post", url_api, response_pending)
+    scenario.add_step("get", url_api, response_done)
+    scenario.add_step("get", url_fetch, "xx" * 40)
 
     scenario.install_mock(requests_mock)
 
@@ -277,4 +280,102 @@ def test_vault_no_directory(requests_mock, mocker, mocked_time):
     )
 
     assert result.output == ("VAULT CRITICAL - No directory exists in the archive.\n")
+    assert result.exit_code == 2, result.output
+
+
+def test_vault_immediate_success_but_fetch_failed(requests_mock, mocker, mocked_time):
+    scenario = WebScenario()
+
+    scenario.add_step("get", url_api, {}, status_code=404)
+    scenario.add_step("post", url_api, response_pending)
+    scenario.add_step("get", url_api, response_done)
+    scenario.add_step("get", url_fetch, "", status_code=500)
+
+    scenario.install_mock(requests_mock)
+
+    get_storage_mock = mocker.patch("swh.icinga_plugins.vault.get_storage")
+    get_storage_mock.side_effect = FakeStorage
+
+    result = invoke(
+        [
+            "check-vault",
+            "--swh-web-url",
+            "mock://swh-web.example.org",
+            "--swh-storage-url",
+            "foo://example.org",
+            "directory",
+        ],
+        catch_exceptions=True,
+    )
+
+    assert result.output == (
+        f"VAULT CRITICAL - cooking directory {dir_id} took "
+        f"10.00s and succeeded, but fetch failed with status code 500.\n"
+        f"| 'total_time' = 10.00s\n"
+    )
+    assert result.exit_code == 2, result.output
+
+
+def test_vault_immediate_success_but_fetch_empty(requests_mock, mocker, mocked_time):
+    scenario = WebScenario()
+
+    scenario.add_step("get", url_api, {}, status_code=404)
+    scenario.add_step("post", url_api, response_pending)
+    scenario.add_step("get", url_api, response_done)
+    scenario.add_step("get", url_fetch, "")
+
+    scenario.install_mock(requests_mock)
+
+    get_storage_mock = mocker.patch("swh.icinga_plugins.vault.get_storage")
+    get_storage_mock.side_effect = FakeStorage
+
+    result = invoke(
+        [
+            "check-vault",
+            "--swh-web-url",
+            "mock://swh-web.example.org",
+            "--swh-storage-url",
+            "foo://example.org",
+            "directory",
+        ],
+        catch_exceptions=True,
+    )
+
+    assert result.output == (
+        f"VAULT CRITICAL - cooking directory {dir_id} took "
+        f"10.00s and succeeded, but fetch was empty.\n"
+        f"| 'total_time' = 10.00s\n"
+    )
+    assert result.exit_code == 2, result.output
+
+
+def test_vault_immediate_success_but_no_fetch_url(requests_mock, mocker, mocked_time):
+    scenario = WebScenario()
+
+    scenario.add_step("get", url_api, {}, status_code=404)
+    scenario.add_step("post", url_api, response_pending)
+    scenario.add_step("get", url_api, response_done_no_fetch)
+
+    scenario.install_mock(requests_mock)
+
+    get_storage_mock = mocker.patch("swh.icinga_plugins.vault.get_storage")
+    get_storage_mock.side_effect = FakeStorage
+
+    result = invoke(
+        [
+            "check-vault",
+            "--swh-web-url",
+            "mock://swh-web.example.org",
+            "--swh-storage-url",
+            "foo://example.org",
+            "directory",
+        ],
+        catch_exceptions=True,
+    )
+
+    assert result.output == (
+        f"VAULT CRITICAL - cooking directory {dir_id} took 10.00s and succeeded, "
+        f"but API response did not contain a fetch_url.\n"
+        f"| 'total_time' = 10.00s\n"
+    )
     assert result.exit_code == 2, result.output
