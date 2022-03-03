@@ -197,6 +197,21 @@ class DepositCheck(BaseCheck):
             )
             return 2
 
+        # Check the metadata was loaded as-is
+        metadata_url = relevant_metadata_objects[0]["metadata_url"]
+        metadata_file = requests.get(metadata_url).content
+        with open(self._metadata_path, "rb") as fd:
+            expected_metadata_file = fd.read()
+        if metadata_file != expected_metadata_file:
+            self.print_result(
+                "CRITICAL",
+                f"Metadata on {swhid} with origin {expected_origin} "
+                f"(at {metadata_url}) differs from uploaded Atom document "
+                f"(at {self._metadata_path})",
+                **metrics,
+            )
+            return 2
+
         # Everything went fine, check total time wasn't too large and
         # print result
         (status_code, status) = self.get_status(metrics["total_time"])

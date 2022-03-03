@@ -219,9 +219,11 @@ def test_deposit_immediate_success(
                 "swhid": swhid,
                 "origin": origin,
                 "discovery_date": "2999-03-03T10:48:47+00:00",
+                "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
             }
         ],
     )
+    scenario.add_step("get", f"{BASE_WEB_URL}/the-metadata-url", SAMPLE_METADATA)
 
     # Then metadata update
     scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
@@ -299,9 +301,11 @@ def test_deposit_delays(
                 "swhid": swhid,
                 "origin": origin,
                 "discovery_date": "2999-03-03T10:48:47+00:00",
+                "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
             }
         ],
     )
+    scenario.add_step("get", f"{BASE_WEB_URL}/the-metadata-url", SAMPLE_METADATA)
 
     # Then metadata update
     scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
@@ -377,9 +381,11 @@ def test_deposit_then_metadata_update_failed(
                 "swhid": swhid,
                 "origin": origin,
                 "discovery_date": "2999-03-03T10:48:47+00:00",
+                "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
             }
         ],
     )
+    scenario.add_step("get", f"{BASE_WEB_URL}/the-metadata-url", SAMPLE_METADATA)
 
     # Then metadata update calls
     failed_status_xml = status_template(
@@ -450,9 +456,11 @@ def test_deposit_delay_warning(
                 "swhid": swhid,
                 "origin": origin,
                 "discovery_date": "2999-03-03T10:48:47+00:00",
+                "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
             }
         ],
     )
+    scenario.add_step("get", f"{BASE_WEB_URL}/the-metadata-url", SAMPLE_METADATA)
 
     scenario.install_mock(requests_mock)
 
@@ -514,9 +522,11 @@ def test_deposit_delay_critical(
                 "swhid": swhid,
                 "origin": origin,
                 "discovery_date": "2999-03-03T10:48:47+00:00",
+                "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
             }
         ],
     )
+    scenario.add_step("get", f"{BASE_WEB_URL}/the-metadata-url", SAMPLE_METADATA)
 
     scenario.install_mock(requests_mock)
 
@@ -621,12 +631,14 @@ def test_deposit_metadata_missing(
             "swhid": swhid,
             "origin": "http://wrong-origin.example.org",
             "discovery_date": "2999-03-03T10:48:47+00:00",
+            "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
         },
         {
             # Filtered out, because too old
             "swhid": swhid,
             "origin": origin,
             "discovery_date": "2022-03-03T09:48:47+00:00",
+            "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
         },
     ]
     scenario.add_step(
@@ -654,6 +666,74 @@ def test_deposit_metadata_missing(
     assert result.output == (
         f"DEPOSIT CRITICAL - No recent metadata on {swhid} with origin {origin} in: "
         f"{metadata_list!r}\n"
+        "| 'load_time' = 10.00s\n"
+        "| 'total_time' = 20.00s\n"
+        "| 'upload_time' = 0.00s\n"
+        "| 'validation_time' = 10.00s\n"
+    )
+    assert result.exit_code == 2, f"Unexpected output: {result.output}"
+
+
+def test_deposit_metadata_corrupt(
+    requests_mock, mocker, sample_archive, sample_metadata, mocked_time
+):
+    origin = compute_origin()
+    scenario = WebScenario()
+
+    scenario.add_step(
+        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
+    )
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+    )
+
+    # Deposit done, checker gets the SWHID
+    swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
+    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
+    )
+
+    # Then the checker checks the metadata appeared on the website
+    metadata_list = [
+        {
+            "swhid": swhid,
+            "origin": origin,
+            "discovery_date": "2999-03-03T09:48:47+00:00",
+            "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
+        },
+    ]
+    scenario.add_step(
+        "get",
+        f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
+        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        metadata_list,
+    )
+    scenario.add_step(
+        "get",
+        f"{BASE_WEB_URL}/the-metadata-url",
+        SAMPLE_METADATA[0:-1],  # corrupting the metadata by dropping the last byte
+    )
+
+    scenario.install_mock(requests_mock)
+
+    result = invoke(
+        [
+            "check-deposit",
+            *COMMON_OPTIONS,
+            "single",
+            "--archive",
+            sample_archive,
+            "--metadata",
+            sample_metadata,
+        ],
+        catch_exceptions=True,
+    )
+
+    assert result.output == (
+        f"DEPOSIT CRITICAL - Metadata on {swhid} with origin {origin} (at "
+        f"{BASE_WEB_URL}/the-metadata-url) differs from uploaded Atom document (at "
+        f"{sample_metadata})\n"
         "| 'load_time' = 10.00s\n"
         "| 'total_time' = 20.00s\n"
         "| 'upload_time' = 0.00s\n"
