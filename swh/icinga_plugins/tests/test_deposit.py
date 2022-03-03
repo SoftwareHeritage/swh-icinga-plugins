@@ -214,7 +214,13 @@ def test_deposit_immediate_success(
         "get",
         f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
         f"?authority=deposit_client%20http://icinga-checker.example.org",
-        [{"swhid": swhid, "origin": origin}],
+        [
+            {
+                "swhid": swhid,
+                "origin": origin,
+                "discovery_date": "2999-03-03T10:48:47+00:00",
+            }
+        ],
     )
 
     # Then metadata update
@@ -288,7 +294,13 @@ def test_deposit_delays(
         "get",
         f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
         f"?authority=deposit_client%20http://icinga-checker.example.org",
-        [{"swhid": swhid, "origin": origin}],
+        [
+            {
+                "swhid": swhid,
+                "origin": origin,
+                "discovery_date": "2999-03-03T10:48:47+00:00",
+            }
+        ],
     )
 
     # Then metadata update
@@ -360,7 +372,13 @@ def test_deposit_then_metadata_update_failed(
         "get",
         f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
         f"?authority=deposit_client%20http://icinga-checker.example.org",
-        [{"swhid": swhid, "origin": origin}],
+        [
+            {
+                "swhid": swhid,
+                "origin": origin,
+                "discovery_date": "2999-03-03T10:48:47+00:00",
+            }
+        ],
     )
 
     # Then metadata update calls
@@ -427,7 +445,13 @@ def test_deposit_delay_warning(
         "get",
         f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
         f"?authority=deposit_client%20http://icinga-checker.example.org",
-        [{"swhid": swhid, "origin": origin}],
+        [
+            {
+                "swhid": swhid,
+                "origin": origin,
+                "discovery_date": "2999-03-03T10:48:47+00:00",
+            }
+        ],
     )
 
     scenario.install_mock(requests_mock)
@@ -485,7 +509,13 @@ def test_deposit_delay_critical(
         "get",
         f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
         f"?authority=deposit_client%20http://icinga-checker.example.org",
-        [{"swhid": swhid, "origin": origin}],
+        [
+            {
+                "swhid": swhid,
+                "origin": origin,
+                "discovery_date": "2999-03-03T10:48:47+00:00",
+            }
+        ],
     )
 
     scenario.install_mock(requests_mock)
@@ -585,11 +615,25 @@ def test_deposit_metadata_missing(
     )
 
     # Then the checker checks the metadata appeared on the website
+    metadata_list = [
+        {
+            # Filtered out, because wrong origin
+            "swhid": swhid,
+            "origin": "http://wrong-origin.example.org",
+            "discovery_date": "2999-03-03T10:48:47+00:00",
+        },
+        {
+            # Filtered out, because too old
+            "swhid": swhid,
+            "origin": origin,
+            "discovery_date": "2022-03-03T09:48:47+00:00",
+        },
+    ]
     scenario.add_step(
         "get",
         f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
         f"?authority=deposit_client%20http://icinga-checker.example.org",
-        [{"swhid": swhid, "origin": "http://wrong-origin.example.org"}],
+        metadata_list,
     )
 
     scenario.install_mock(requests_mock)
@@ -608,8 +652,8 @@ def test_deposit_metadata_missing(
     )
 
     assert result.output == (
-        f"DEPOSIT CRITICAL - Deposited metadata on {swhid} with origin {origin}, "
-        f"missing from the list of origins: ['http://wrong-origin.example.org']\n"
+        f"DEPOSIT CRITICAL - No recent metadata on {swhid} with origin {origin} in: "
+        f"{metadata_list!r}\n"
         "| 'load_time' = 10.00s\n"
         "| 'total_time' = 20.00s\n"
         "| 'upload_time' = 0.00s\n"

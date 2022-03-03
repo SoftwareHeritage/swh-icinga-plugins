@@ -97,6 +97,9 @@ class DepositCheck(BaseCheck):
 
     def main(self):
         start_time = time.time()
+        start_datetime = datetime.datetime.fromtimestamp(
+            start_time, tz=datetime.timezone.utc
+        )
         metrics = {}
 
         # Upload the archive and metadata
@@ -170,18 +173,26 @@ class DepositCheck(BaseCheck):
             )
             return 2
 
-        # Get metadata from swh-web
+        # Get metadata list from swh-web
         metadata_objects = requests.get(
             f"{self.api_url}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
             f"?authority=deposit_client%20{self._provider_url}"
         ).json()
         expected_origin = f"{self._provider_url}/{self._slug}"
-        origins = [d.get("origin") for d in metadata_objects]
-        if expected_origin not in origins:
+
+        # Filter out objects that were clearly not created by this deposit (ie. created
+        # before the deposit started, or that are from unrelated origins)
+        relevant_metadata_objects = [
+            d
+            for d in metadata_objects
+            if d.get("origin") == expected_origin
+            and datetime.datetime.fromisoformat(d["discovery_date"]) >= start_datetime
+        ]
+        if not relevant_metadata_objects:
             self.print_result(
                 "CRITICAL",
-                f"Deposited metadata on {swhid} with origin {expected_origin}, "
-                f"missing from the list of origins: {origins!r}",
+                f"No recent metadata on {swhid} with origin {expected_origin} in: "
+                f"{metadata_objects!r}",
                 **metrics,
             )
             return 2
