@@ -73,52 +73,7 @@ class VaultCheck(BaseCheck):
                 )
                 return 2
 
-        if result["status"] == "done":
-            (status_code, status) = self.get_status(total_time)
-
-            if "fetch_url" not in result:
-                self.print_result(
-                    "CRITICAL",
-                    f"cooking directory {dir_id.hex()} took {total_time:.2f}s "
-                    f"and succeeded, but API response did not contain a fetch_url.",
-                    total_time=total_time,
-                )
-                return 2
-
-            with requests.get(result["fetch_url"], stream=True) as fetch_response:
-                try:
-                    fetch_response.raise_for_status()
-                except requests.HTTPError:
-                    self.print_result(
-                        "CRITICAL",
-                        f"cooking directory {dir_id.hex()} took {total_time:.2f}s "
-                        f"and succeeded, but fetch failed with status code "
-                        f"{fetch_response.status_code}.",
-                        total_time=total_time,
-                    )
-                    return 2
-
-                response_length = 0
-                for chunk in fetch_response.iter_content(decode_unicode=False):
-                    response_length += len(chunk)
-
-            if response_length == 0:
-                self.print_result(
-                    "CRITICAL",
-                    f"cooking directory {dir_id.hex()} took {total_time:.2f}s "
-                    f"and succeeded, but fetch was empty.",
-                    total_time=total_time,
-                )
-                return 2
-
-            self.print_result(
-                status,
-                f"cooking directory {dir_id.hex()} took {total_time:.2f}s "
-                f"and succeeded.",
-                total_time=total_time,
-            )
-            return status_code
-        elif result["status"] == "failed":
+        if result["status"] == "failed":
             self.print_result(
                 "CRITICAL",
                 f"cooking directory {dir_id.hex()} took {total_time:.2f}s "
@@ -126,7 +81,7 @@ class VaultCheck(BaseCheck):
                 total_time=total_time,
             )
             return 2
-        else:
+        elif result["status"] != "done":
             self.print_result(
                 "CRITICAL",
                 f"cooking directory {dir_id.hex()} took {total_time:.2f}s "
@@ -134,3 +89,48 @@ class VaultCheck(BaseCheck):
                 total_time=total_time,
             )
             return 2
+
+        (status_code, status) = self.get_status(total_time)
+
+        if "fetch_url" not in result:
+            self.print_result(
+                "CRITICAL",
+                f"cooking directory {dir_id.hex()} took {total_time:.2f}s "
+                f"and succeeded, but API response did not contain a fetch_url.",
+                total_time=total_time,
+            )
+            return 2
+
+        with requests.get(result["fetch_url"], stream=True) as fetch_response:
+            try:
+                fetch_response.raise_for_status()
+            except requests.HTTPError:
+                self.print_result(
+                    "CRITICAL",
+                    f"cooking directory {dir_id.hex()} took {total_time:.2f}s "
+                    f"and succeeded, but fetch failed with status code "
+                    f"{fetch_response.status_code}.",
+                    total_time=total_time,
+                )
+                return 2
+
+            response_length = 0
+            for chunk in fetch_response.iter_content(decode_unicode=False):
+                response_length += len(chunk)
+
+        if response_length == 0:
+            self.print_result(
+                "CRITICAL",
+                f"cooking directory {dir_id.hex()} took {total_time:.2f}s "
+                f"and succeeded, but fetch was empty.",
+                total_time=total_time,
+            )
+            return 2
+
+        self.print_result(
+            status,
+            f"cooking directory {dir_id.hex()} took {total_time:.2f}s "
+            f"and succeeded.",
+            total_time=total_time,
+        )
+        return status_code
