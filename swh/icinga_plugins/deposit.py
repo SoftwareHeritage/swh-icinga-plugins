@@ -8,6 +8,8 @@ import sys
 import time
 from typing import Any, Dict, Optional
 
+import requests
+
 from swh.deposit.client import PublicApiDepositClient
 
 from .base_check import BaseCheck
@@ -20,11 +22,13 @@ class DepositCheck(BaseCheck):
 
     def __init__(self, obj):
         super().__init__(obj)
+        self.api_url = obj["swh_web_url"].rstrip("/")
         self._poll_interval = obj["poll_interval"]
         self._archive_path = obj["archive"]
         self._metadata_path = obj["metadata"]
         self._collection = obj["collection"]
         self._slug: Optional[str] = None
+        self._provider_url = obj["provider_url"]
 
         self._client = PublicApiDepositClient(
             {
@@ -34,7 +38,10 @@ class DepositCheck(BaseCheck):
         )
 
     def upload_deposit(self):
-        slug = "check-deposit-%s" % datetime.datetime.now().isoformat()
+        slug = (
+            "check-deposit-%s"
+            % datetime.datetime.fromtimestamp(time.time()).isoformat()
+        )
         result = self._client.deposit_create(
             archive=self._archive_path,
             metadata=self._metadata_path,
@@ -90,6 +97,9 @@ class DepositCheck(BaseCheck):
 
     def main(self):
         start_time = time.time()
+        start_datetime = datetime.datetime.fromtimestamp(
+            start_time, tz=datetime.timezone.utc
+        )
         metrics = {}
 
         # Upload the archive and metadata
@@ -134,6 +144,70 @@ class DepositCheck(BaseCheck):
                 "CRITICAL",
                 f'Deposit got unexpected status: {result["deposit_status"]} '
                 f'({result["deposit_status_detail"]})',
+                **metrics,
+            )
+            return 2
+
+        # Get the SWHID
+        if "deposit_swh_id" not in result:
+            # if the deposit succeeded immediately (which is rare), it does not
+            # contain the SWHID, so we need to re-fetch its status.
+            result = self.get_deposit_status()
+        if result.get("deposit_swh_id") is None:
+            self.print_result(
+                "CRITICAL",
+                f"'deposit_swh_id' missing from result: {result!r}",
+                **metrics,
+            )
+            return 2
+
+        swhid = result["deposit_swh_id"]
+
+        # Check for unexpected status
+        if result["deposit_status"] != "done":
+            self.print_result(
+                "CRITICAL",
+                f'Deposit status went from "done" to: {result["deposit_status"]} '
+                f'({result["deposit_status_detail"]})',
+                **metrics,
+            )
+            return 2
+
+        # Get metadata list from swh-web
+        metadata_objects = requests.get(
+            f"{self.api_url}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
+            f"?authority=deposit_client%20{self._provider_url}"
+        ).json()
+        expected_origin = f"{self._provider_url}/{self._slug}"
+
+        # Filter out objects that were clearly not created by this deposit (ie. created
+        # before the deposit started, or that are from unrelated origins)
+        relevant_metadata_objects = [
+            d
+            for d in metadata_objects
+            if d.get("origin") == expected_origin
+            and datetime.datetime.fromisoformat(d["discovery_date"]) >= start_datetime
+        ]
+        if not relevant_metadata_objects:
+            self.print_result(
+                "CRITICAL",
+                f"No recent metadata on {swhid} with origin {expected_origin} in: "
+                f"{metadata_objects!r}",
+                **metrics,
+            )
+            return 2
+
+        # Check the metadata was loaded as-is
+        metadata_url = relevant_metadata_objects[0]["metadata_url"]
+        metadata_file = requests.get(metadata_url).content
+        with open(self._metadata_path, "rb") as fd:
+            expected_metadata_file = fd.read()
+        if metadata_file != expected_metadata_file:
+            self.print_result(
+                "CRITICAL",
+                f"Metadata on {swhid} with origin {expected_origin} "
+                f"(at {metadata_url}) differs from uploaded Atom document "
+                f"(at {self._metadata_path})",
                 **metrics,
             )
             return 2
