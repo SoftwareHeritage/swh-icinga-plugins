@@ -408,7 +408,7 @@ def test_vault_corrupt_tarball_gzip(requests_mock, mocker, mocked_time):
     )
 
     assert result.output == (
-        "VAULT CRITICAL - Error while reading tarball: not a gzip file\n"
+        "VAULT CRITICAL - ReadError while reading tarball: not a gzip file\n"
         "| 'total_time' = 20.00s\n"
     )
     assert result.exit_code == 2, result.output
@@ -449,6 +449,50 @@ def test_vault_corrupt_tarball_member(requests_mock, mocker, mocked_time):
 
     assert result.output == (
         "VAULT CRITICAL - Unexpected member in tarball: wrong_dir_name/README\n"
+        "| 'total_time' = 20.00s\n"
+    )
+    assert result.exit_code == 2, result.output
+
+
+def test_vault_empty_tarball(requests_mock, mocker, mocked_time):
+    fd = io.BytesIO()
+    with tarfile.open(fileobj=fd, mode="w:gz"):
+        pass
+    tarball = fd.getvalue()
+    print(tarball)
+
+    scenario = WebScenario()
+
+    scenario.add_step("get", url_api, {}, status_code=404)
+    scenario.add_step("post", url_api, response_pending)
+    scenario.add_step("get", url_api, response_pending)
+    scenario.add_step("get", url_api, response_done)
+    scenario.add_step(
+        "get", url_fetch, tarball, headers={"Content-Type": "application/gzip"},
+    )
+
+    scenario.install_mock(requests_mock)
+
+    get_storage_mock = mocker.patch("swh.icinga_plugins.vault.get_storage")
+    get_storage_mock.side_effect = FakeStorage
+
+    result = invoke(
+        [
+            "check-vault",
+            "--swh-web-url",
+            "mock://swh-web.example.org",
+            "--swh-storage-url",
+            "foo://example.org",
+            "directory",
+        ],
+        catch_exceptions=True,
+    )
+
+    # This error message will need to be updated when https://bugs.python.org/issue46922
+    # is resolved.
+    assert result.output == (
+        "VAULT CRITICAL - StreamError while reading tarball (empty file?): "
+        "seeking backwards is not allowed\n"
         "| 'total_time' = 20.00s\n"
     )
     assert result.exit_code == 2, result.output
