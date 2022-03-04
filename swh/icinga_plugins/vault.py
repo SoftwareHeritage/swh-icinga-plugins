@@ -114,6 +114,15 @@ class VaultCheck(BaseCheck):
                 )
                 return 2
 
+            content_type = fetch_response.headers.get("Content-Type")
+            if content_type != "application/gzip":
+                self.print_result(
+                    "CRITICAL",
+                    f"Unexpected Content-Type when downloading bundle: {content_type}",
+                    total_time=total_time,
+                )
+                return 2
+
             response_length = 0
             for chunk in fetch_response.iter_content(decode_unicode=False):
                 response_length += len(chunk)

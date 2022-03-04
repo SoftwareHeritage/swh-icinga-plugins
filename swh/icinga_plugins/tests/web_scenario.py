@@ -1,4 +1,4 @@
-# Copyright (C) 2019  The Software Heritage developers
+# Copyright (C) 2019-2022  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -9,23 +9,24 @@ from a web service.
 Tests can build successive steps by calling :py:meth:`WebScenario.add_step`
 with specifications of what endpoints should be called and in what order."""
 
-from dataclasses import dataclass
+import dataclasses
 import json
-from typing import Callable, List, Optional, Set
+from typing import Callable, Dict, List, Optional, Set, Union
 
 import requests_mock
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class Step:
     expected_method: str
     expected_url: str
-    response: object
+    response: Union[str, bytes, Dict, List]
     status_code: int = 200
+    headers: Dict[str, str] = dataclasses.field(default_factory=dict)
     callback: Optional[Callable[[], int]] = None
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class Endpoint:
     method: str
     url: str
@@ -68,9 +69,7 @@ class WebScenario:
         """
         for endpoint in self._endpoints:
             mocker.register_uri(
-                endpoint.method.upper(),
-                endpoint.url,
-                text=self._request_callback,  # type: ignore  # stubs are too strict
+                endpoint.method.upper(), endpoint.url, content=self._request_callback,
             )
 
     def _request_callback(self, request, context):
@@ -82,11 +81,14 @@ class WebScenario:
         self._current_step += 1
 
         context.status_code = step.status_code
+        context.headers.update(step.headers)
 
         if step.callback:
             step.callback()
 
         if isinstance(step.response, str):
+            return step.response.encode()
+        elif isinstance(step.response, bytes):
             return step.response
         else:
-            return json.dumps(step.response)
+            return json.dumps(step.response).encode()

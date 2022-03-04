@@ -65,7 +65,9 @@ def test_vault_immediate_success(requests_mock, mocker, mocked_time):
     scenario.add_step("get", url_api, {}, status_code=404)
     scenario.add_step("post", url_api, response_pending)
     scenario.add_step("get", url_api, response_done)
-    scenario.add_step("get", url_fetch, "xx" * 40)
+    scenario.add_step(
+        "get", url_fetch, "xx" * 40, headers={"Content-Type": "application/gzip"}
+    )
 
     scenario.install_mock(requests_mock)
 
@@ -98,7 +100,9 @@ def test_vault_delayed_success(requests_mock, mocker, mocked_time):
     scenario.add_step("post", url_api, response_pending)
     scenario.add_step("get", url_api, response_pending)
     scenario.add_step("get", url_api, response_done)
-    scenario.add_step("get", url_fetch, "xx" * 40)
+    scenario.add_step(
+        "get", url_fetch, "xx" * 40, headers={"Content-Type": "application/gzip"}
+    )
 
     scenario.install_mock(requests_mock)
 
@@ -232,7 +236,9 @@ def test_vault_cached_directory(requests_mock, mocker, mocked_time):
     scenario.add_step("get", url_api, {}, status_code=404)
     scenario.add_step("post", url_api, response_pending)
     scenario.add_step("get", url_api, response_done)
-    scenario.add_step("get", url_fetch, "xx" * 40)
+    scenario.add_step(
+        "get", url_fetch, "xx" * 40, headers={"Content-Type": "application/gzip"}
+    )
 
     scenario.install_mock(requests_mock)
 
@@ -283,13 +289,19 @@ def test_vault_no_directory(requests_mock, mocker, mocked_time):
     assert result.exit_code == 2, result.output
 
 
-def test_vault_immediate_success_but_fetch_failed(requests_mock, mocker, mocked_time):
+def test_vault_fetch_failed(requests_mock, mocker, mocked_time):
     scenario = WebScenario()
 
     scenario.add_step("get", url_api, {}, status_code=404)
     scenario.add_step("post", url_api, response_pending)
     scenario.add_step("get", url_api, response_done)
-    scenario.add_step("get", url_fetch, "", status_code=500)
+    scenario.add_step(
+        "get",
+        url_fetch,
+        "",
+        status_code=500,
+        headers={"Content-Type": "application/gzip"},
+    )
 
     scenario.install_mock(requests_mock)
 
@@ -316,13 +328,15 @@ def test_vault_immediate_success_but_fetch_failed(requests_mock, mocker, mocked_
     assert result.exit_code == 2, result.output
 
 
-def test_vault_immediate_success_but_fetch_empty(requests_mock, mocker, mocked_time):
+def test_vault_fetch_empty(requests_mock, mocker, mocked_time):
     scenario = WebScenario()
 
     scenario.add_step("get", url_api, {}, status_code=404)
     scenario.add_step("post", url_api, response_pending)
     scenario.add_step("get", url_api, response_done)
-    scenario.add_step("get", url_fetch, "")
+    scenario.add_step(
+        "get", url_fetch, "", headers={"Content-Type": "application/gzip"}
+    )
 
     scenario.install_mock(requests_mock)
 
@@ -349,7 +363,39 @@ def test_vault_immediate_success_but_fetch_empty(requests_mock, mocker, mocked_t
     assert result.exit_code == 2, result.output
 
 
-def test_vault_immediate_success_but_no_fetch_url(requests_mock, mocker, mocked_time):
+def test_vault_fetch_missing_content_type(requests_mock, mocker, mocked_time):
+    scenario = WebScenario()
+
+    scenario.add_step("get", url_api, {}, status_code=404)
+    scenario.add_step("post", url_api, response_pending)
+    scenario.add_step("get", url_api, response_done)
+    scenario.add_step("get", url_fetch, "")
+
+    scenario.install_mock(requests_mock)
+
+    get_storage_mock = mocker.patch("swh.icinga_plugins.vault.get_storage")
+    get_storage_mock.side_effect = FakeStorage
+
+    result = invoke(
+        [
+            "check-vault",
+            "--swh-web-url",
+            "mock://swh-web.example.org",
+            "--swh-storage-url",
+            "foo://example.org",
+            "directory",
+        ],
+        catch_exceptions=True,
+    )
+
+    assert result.output == (
+        "VAULT CRITICAL - Unexpected Content-Type when downloading bundle: None\n"
+        "| 'total_time' = 10.00s\n"
+    )
+    assert result.exit_code == 2, result.output
+
+
+def test_vault_no_fetch_url(requests_mock, mocker, mocked_time):
     scenario = WebScenario()
 
     scenario.add_step("get", url_api, {}, status_code=404)
