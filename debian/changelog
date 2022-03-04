@@ -1,8 +1,12 @@
-swh.icingaplugins (0.4.0-1~swh1~bpo10+1) buster-swh; urgency=medium
+swh.icingaplugins (0.4.1-1~swh1) unstable-swh; urgency=medium
 
-  * Rebuild for buster-swh
+  * New upstream release 0.4.1     - (tagged by Valentin Lorentz
+    <vlorentz@softwareheritage.org> on 2022-03-04 18:18:17 +0100)
+  * Upstream changes:     - v0.4.1     - * vault: Open tarballs in
+    stream mode + add test for empty tar files     - * deposit: Fetch
+    only metadata created after the check started
 
- -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Fri, 04 Mar 2022 16:30:02 +0000
+ -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Fri, 04 Mar 2022 17:21:14 +0000
 
 swh.icingaplugins (0.4.0-1~swh1) unstable-swh; urgency=medium
 
