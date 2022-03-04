@@ -1,16 +1,14 @@
-# Copyright (C) 2019  The Software Heritage developers
+# Copyright (C) 2019-2022  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
-
-import time
 
 import pytest
 
 
 @pytest.fixture
 def mocked_time(mocker):
-    start_time = time.time()
+    start_time = 1646413359.0  # 2022-03-04-17:02:39Z
 
     time_offset = 0
 

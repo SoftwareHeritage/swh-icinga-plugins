@@ -213,7 +213,8 @@ def test_deposit_immediate_success(
     scenario.add_step(
         "get",
         f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
-        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        f"?authority=deposit_client%20http://icinga-checker.example.org"
+        f"&after=2022-03-04T17:02:39+00:00",
         [
             {
                 "swhid": swhid,
@@ -295,7 +296,8 @@ def test_deposit_delays(
     scenario.add_step(
         "get",
         f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
-        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        f"?authority=deposit_client%20http://icinga-checker.example.org"
+        f"&after=2022-03-04T17:02:39+00:00",
         [
             {
                 "swhid": swhid,
@@ -375,7 +377,8 @@ def test_deposit_then_metadata_update_failed(
     scenario.add_step(
         "get",
         f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
-        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        f"?authority=deposit_client%20http://icinga-checker.example.org"
+        f"&after=2022-03-04T17:02:39+00:00",
         [
             {
                 "swhid": swhid,
@@ -450,7 +453,8 @@ def test_deposit_delay_warning(
     scenario.add_step(
         "get",
         f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
-        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        f"?authority=deposit_client%20http://icinga-checker.example.org"
+        f"&after=2022-03-04T17:02:39+00:00",
         [
             {
                 "swhid": swhid,
@@ -516,7 +520,8 @@ def test_deposit_delay_critical(
     scenario.add_step(
         "get",
         f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
-        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        f"?authority=deposit_client%20http://icinga-checker.example.org"
+        f"&after=2022-03-04T17:02:39+00:00",
         [
             {
                 "swhid": swhid,
@@ -633,18 +638,12 @@ def test_deposit_metadata_missing(
             "discovery_date": "2999-03-03T10:48:47+00:00",
             "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
         },
-        {
-            # Filtered out, because too old
-            "swhid": swhid,
-            "origin": origin,
-            "discovery_date": "2022-03-03T09:48:47+00:00",
-            "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
-        },
     ]
     scenario.add_step(
         "get",
         f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
-        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        f"?authority=deposit_client%20http://icinga-checker.example.org"
+        f"&after=2022-03-04T17:02:39+00:00",
         metadata_list,
     )
 
@@ -706,7 +705,8 @@ def test_deposit_metadata_corrupt(
     scenario.add_step(
         "get",
         f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
-        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        f"?authority=deposit_client%20http://icinga-checker.example.org"
+        f"&after=2022-03-04T17:02:39+00:00",
         metadata_list,
     )
     scenario.add_step(
