@@ -125,7 +125,7 @@ class VaultCheck(BaseCheck):
                 return 2
 
             try:
-                with tarfile.open(fileobj=fetch_response.raw, mode="r:gz") as tf:
+                with tarfile.open(fileobj=fetch_response.raw, mode="r|gz") as tf:
                     # Note that we are streaming the tarfile from the network,
                     # so we are allowed at most one pass on the tf object;
                     # and the sooner we close it the better.
@@ -144,7 +144,23 @@ class VaultCheck(BaseCheck):
             except tarfile.ReadError as e:
                 self.print_result(
                     "CRITICAL",
-                    f"Error while reading tarball: {e}",
+                    f"ReadError while reading tarball: {e}",
+                    total_time=total_time,
+                )
+                return 2
+            except tarfile.StreamError as e:
+                if e.args[0] == "seeking backwards is not allowed":
+                    # Probably https://bugs.python.org/issue46922
+                    self.print_result(
+                        "CRITICAL",
+                        f"StreamError while reading tarball (empty file?): {e}",
+                        total_time=total_time,
+                    )
+                    return 2
+
+                self.print_result(
+                    "CRITICAL",
+                    f"StreamError while reading tarball: {e}",
                     total_time=total_time,
                 )
                 return 2
