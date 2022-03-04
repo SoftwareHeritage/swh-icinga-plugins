@@ -175,9 +175,11 @@ class DepositCheck(BaseCheck):
 
         # Get metadata list from swh-web
         metadata_objects = requests.get(
-            f"{self.api_url}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
-            f"?authority=deposit_client%20{self._provider_url}"
-            f"&after={start_datetime.isoformat()}"
+            f"{self.api_url}/api/1/raw-extrinsic-metadata/swhid/{swhid}/",
+            params={
+                "authority": f"deposit_client {self._provider_url}",
+                "after": start_datetime.isoformat(),
+            },
         ).json()
         expected_origin = f"{self._provider_url}/{self._slug}"
 
