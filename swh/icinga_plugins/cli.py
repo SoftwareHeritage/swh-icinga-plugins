@@ -94,6 +94,15 @@ def check_scn_origin(ctx, origin, visit_type):
     default="https://deposit.softwareheritage.org/1",
     help="URL to the SWORD server to test",
 )
+@click.option(
+    "--provider-url",
+    type=str,
+    required=True,
+    help=(
+        "Root URL of the deposit client, as defined in the "
+        "'deposit_client.provider_url' column in the deposit DB"
+    ),
+)
 @click.option("--username", type=str, required=True, help="Login for the SWORD server")
 @click.option(
     "--password", type=str, required=True, help="Password for the SWORD server"
@@ -110,6 +119,9 @@ def check_scn_origin(ctx, origin, visit_type):
     default=10,
     help="Interval (in seconds) between two polls to the API, "
     "to check for ingestion status.",
+)
+@click.option(
+    "--swh-web-url", type=str, required=True, help="URL to an swh-web instance"
 )
 @click.pass_context
 def check_deposit(ctx, **kwargs):
