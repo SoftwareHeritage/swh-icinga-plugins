@@ -3,6 +3,8 @@
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
+import io
+import tarfile
 import time
 
 from swh.icinga_plugins.tests.utils import invoke
@@ -13,6 +15,20 @@ DIR_ID = "ab" * 20
 
 url_api = f"mock://swh-web.example.org/api/1/vault/directory/{DIR_ID}/"
 url_fetch = f"mock://swh-web.example.org/api/1/vault/directory/{DIR_ID}/raw/"
+
+
+def _make_tarfile():
+    fd = io.BytesIO()
+    with tarfile.open(fileobj=fd, mode="w:gz") as tf:
+        tf.addfile(tarfile.TarInfo(f"swh:1:dir:{DIR_ID}/README"), b"this is a readme\n")
+
+        tarinfo = tarfile.TarInfo(f"swh:1:dir:{DIR_ID}")
+        tarinfo.type = tarfile.DIRTYPE
+        tf.addfile(tarinfo)
+    return fd.getvalue()
+
+
+TARBALL = _make_tarfile()
 
 response_pending = {
     "obj_id": DIR_ID,
@@ -66,7 +82,7 @@ def test_vault_immediate_success(requests_mock, mocker, mocked_time):
     scenario.add_step("post", url_api, response_pending)
     scenario.add_step("get", url_api, response_done)
     scenario.add_step(
-        "get", url_fetch, "xx" * 40, headers={"Content-Type": "application/gzip"}
+        "get", url_fetch, TARBALL, headers={"Content-Type": "application/gzip"}
     )
 
     scenario.install_mock(requests_mock)
@@ -101,7 +117,7 @@ def test_vault_delayed_success(requests_mock, mocker, mocked_time):
     scenario.add_step("get", url_api, response_pending)
     scenario.add_step("get", url_api, response_done)
     scenario.add_step(
-        "get", url_fetch, "xx" * 40, headers={"Content-Type": "application/gzip"}
+        "get", url_fetch, TARBALL, headers={"Content-Type": "application/gzip"}
     )
 
     scenario.install_mock(requests_mock)
@@ -237,7 +253,7 @@ def test_vault_cached_directory(requests_mock, mocker, mocked_time):
     scenario.add_step("post", url_api, response_pending)
     scenario.add_step("get", url_api, response_done)
     scenario.add_step(
-        "get", url_fetch, "xx" * 40, headers={"Content-Type": "application/gzip"}
+        "get", url_fetch, TARBALL, headers={"Content-Type": "application/gzip"}
     )
 
     scenario.install_mock(requests_mock)
@@ -328,41 +344,6 @@ def test_vault_fetch_failed(requests_mock, mocker, mocked_time):
     assert result.exit_code == 2, result.output
 
 
-def test_vault_fetch_empty(requests_mock, mocker, mocked_time):
-    scenario = WebScenario()
-
-    scenario.add_step("get", url_api, {}, status_code=404)
-    scenario.add_step("post", url_api, response_pending)
-    scenario.add_step("get", url_api, response_done)
-    scenario.add_step(
-        "get", url_fetch, "", headers={"Content-Type": "application/gzip"}
-    )
-
-    scenario.install_mock(requests_mock)
-
-    get_storage_mock = mocker.patch("swh.icinga_plugins.vault.get_storage")
-    get_storage_mock.side_effect = FakeStorage
-
-    result = invoke(
-        [
-            "check-vault",
-            "--swh-web-url",
-            "mock://swh-web.example.org",
-            "--swh-storage-url",
-            "foo://example.org",
-            "directory",
-        ],
-        catch_exceptions=True,
-    )
-
-    assert result.output == (
-        f"VAULT CRITICAL - cooking directory {DIR_ID} took "
-        f"10.00s and succeeded, but fetch was empty.\n"
-        f"| 'total_time' = 10.00s\n"
-    )
-    assert result.exit_code == 2, result.output
-
-
 def test_vault_fetch_missing_content_type(requests_mock, mocker, mocked_time):
     scenario = WebScenario()
 
@@ -391,6 +372,87 @@ def test_vault_fetch_missing_content_type(requests_mock, mocker, mocked_time):
     assert result.output == (
         "VAULT CRITICAL - Unexpected Content-Type when downloading bundle: None\n"
         "| 'total_time' = 10.00s\n"
+    )
+    assert result.exit_code == 2, result.output
+
+
+def test_vault_corrupt_tarball_gzip(requests_mock, mocker, mocked_time):
+    scenario = WebScenario()
+
+    scenario.add_step("get", url_api, {}, status_code=404)
+    scenario.add_step("post", url_api, response_pending)
+    scenario.add_step("get", url_api, response_pending)
+    scenario.add_step("get", url_api, response_done)
+    scenario.add_step(
+        "get",
+        url_fetch,
+        b"this-is-not-a-tarball",
+        headers={"Content-Type": "application/gzip", "Content-Length": "100000"},
+    )
+
+    scenario.install_mock(requests_mock)
+
+    get_storage_mock = mocker.patch("swh.icinga_plugins.vault.get_storage")
+    get_storage_mock.side_effect = FakeStorage
+
+    result = invoke(
+        [
+            "check-vault",
+            "--swh-web-url",
+            "mock://swh-web.example.org",
+            "--swh-storage-url",
+            "foo://example.org",
+            "directory",
+        ],
+        catch_exceptions=True,
+    )
+
+    assert result.output == (
+        "VAULT CRITICAL - Error while reading tarball: not a gzip file\n"
+        "| 'total_time' = 20.00s\n"
+    )
+    assert result.exit_code == 2, result.output
+
+
+def test_vault_corrupt_tarball_member(requests_mock, mocker, mocked_time):
+    fd = io.BytesIO()
+    with tarfile.open(fileobj=fd, mode="w:gz") as tf:
+        tf.addfile(tarfile.TarInfo("wrong_dir_name/README"), b"this is a readme\n")
+    tarball = fd.getvalue()
+
+    scenario = WebScenario()
+
+    scenario.add_step("get", url_api, {}, status_code=404)
+    scenario.add_step("post", url_api, response_pending)
+    scenario.add_step("get", url_api, response_pending)
+    scenario.add_step("get", url_api, response_done)
+    scenario.add_step(
+        "get",
+        url_fetch,
+        tarball,
+        headers={"Content-Type": "application/gzip", "Content-Length": "100000"},
+    )
+
+    scenario.install_mock(requests_mock)
+
+    get_storage_mock = mocker.patch("swh.icinga_plugins.vault.get_storage")
+    get_storage_mock.side_effect = FakeStorage
+
+    result = invoke(
+        [
+            "check-vault",
+            "--swh-web-url",
+            "mock://swh-web.example.org",
+            "--swh-storage-url",
+            "foo://example.org",
+            "directory",
+        ],
+        catch_exceptions=True,
+    )
+
+    assert result.output == (
+        "VAULT CRITICAL - Unexpected member in tarball: wrong_dir_name/README\n"
+        "| 'total_time' = 20.00s\n"
     )
     assert result.exit_code == 2, result.output
 

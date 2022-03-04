@@ -3,6 +3,7 @@
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
+import tarfile
 import time
 
 import requests
@@ -123,18 +124,30 @@ class VaultCheck(BaseCheck):
                 )
                 return 2
 
-            response_length = 0
-            for chunk in fetch_response.iter_content(decode_unicode=False):
-                response_length += len(chunk)
-
-        if response_length == 0:
-            self.print_result(
-                "CRITICAL",
-                f"cooking directory {dir_id.hex()} took {total_time:.2f}s "
-                f"and succeeded, but fetch was empty.",
-                total_time=total_time,
-            )
-            return 2
+            try:
+                with tarfile.open(fileobj=fetch_response.raw, mode="r:gz") as tf:
+                    # Note that we are streaming the tarfile from the network,
+                    # so we are allowed at most one pass on the tf object;
+                    # and the sooner we close it the better.
+                    # Fortunately, checking only the first member is good enough:
+                    tarinfo = tf.next()
+                    swhid = f"swh:1:dir:{dir_id.hex()}"
+                    if tarinfo.name != swhid and not tarinfo.name.startswith(
+                        f"{swhid}/"
+                    ):
+                        self.print_result(
+                            "CRITICAL",
+                            f"Unexpected member in tarball: {tarinfo.name}",
+                            total_time=total_time,
+                        )
+                        return 2
+            except tarfile.ReadError as e:
+                self.print_result(
+                    "CRITICAL",
+                    f"Error while reading tarball: {e}",
+                    total_time=total_time,
+                )
+                return 2
 
         self.print_result(
             status,
