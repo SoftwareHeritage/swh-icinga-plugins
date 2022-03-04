@@ -9,13 +9,13 @@ from swh.icinga_plugins.tests.utils import invoke
 
 from .web_scenario import WebScenario
 
-dir_id = "ab" * 20
+DIR_ID = "ab" * 20
 
-url_api = f"mock://swh-web.example.org/api/1/vault/directory/{dir_id}/"
-url_fetch = f"mock://swh-web.example.org/api/1/vault/directory/{dir_id}/raw/"
+url_api = f"mock://swh-web.example.org/api/1/vault/directory/{DIR_ID}/"
+url_fetch = f"mock://swh-web.example.org/api/1/vault/directory/{DIR_ID}/raw/"
 
 response_pending = {
-    "obj_id": dir_id,
+    "obj_id": DIR_ID,
     "obj_type": "directory",
     "progress_message": "foo",
     "status": "pending",
@@ -24,27 +24,27 @@ response_pending = {
 response_done = {
     "fetch_url": url_fetch,
     "id": 9,
-    "obj_id": dir_id,
+    "obj_id": DIR_ID,
     "obj_type": "directory",
     "status": "done",
 }
 
 response_done_no_fetch = {
     "id": 9,
-    "obj_id": dir_id,
+    "obj_id": DIR_ID,
     "obj_type": "directory",
     "status": "done",
 }
 
 response_failed = {
-    "obj_id": dir_id,
+    "obj_id": DIR_ID,
     "obj_type": "directory",
     "progress_message": "foobar",
     "status": "failed",
 }
 
 response_unknown_status = {
-    "obj_id": dir_id,
+    "obj_id": DIR_ID,
     "obj_type": "directory",
     "progress_message": "what",
     "status": "boo",
@@ -56,7 +56,7 @@ class FakeStorage:
         pass
 
     def directory_get_random(self):
-        return bytes.fromhex(dir_id)
+        return bytes.fromhex(DIR_ID)
 
 
 def test_vault_immediate_success(requests_mock, mocker, mocked_time):
@@ -84,7 +84,7 @@ def test_vault_immediate_success(requests_mock, mocker, mocked_time):
     )
 
     assert result.output == (
-        f"VAULT OK - cooking directory {dir_id} took "
+        f"VAULT OK - cooking directory {DIR_ID} took "
         f"10.00s and succeeded.\n"
         f"| 'total_time' = 10.00s\n"
     )
@@ -117,7 +117,7 @@ def test_vault_delayed_success(requests_mock, mocker, mocked_time):
     )
 
     assert result.output == (
-        f"VAULT OK - cooking directory {dir_id} took "
+        f"VAULT OK - cooking directory {DIR_ID} took "
         f"20.00s and succeeded.\n"
         f"| 'total_time' = 20.00s\n"
     )
@@ -149,7 +149,7 @@ def test_vault_failure(requests_mock, mocker, mocked_time):
     )
 
     assert result.output == (
-        f"VAULT CRITICAL - cooking directory {dir_id} took "
+        f"VAULT CRITICAL - cooking directory {DIR_ID} took "
         f"10.00s and failed with: foobar\n"
         f"| 'total_time' = 10.00s\n"
     )
@@ -181,7 +181,7 @@ def test_vault_unknown_status(requests_mock, mocker, mocked_time):
     )
 
     assert result.output == (
-        f"VAULT CRITICAL - cooking directory {dir_id} took "
+        f"VAULT CRITICAL - cooking directory {DIR_ID} took "
         f"10.00s and resulted in unknown status: boo\n"
         f"| 'total_time' = 10.00s\n"
     )
@@ -216,7 +216,7 @@ def test_vault_timeout(requests_mock, mocker, mocked_time):
     )
 
     assert result.output == (
-        f"VAULT CRITICAL - cooking directory {dir_id} took more than "
+        f"VAULT CRITICAL - cooking directory {DIR_ID} took more than "
         f"4020.00s and has status: foo\n"
         f"| 'total_time' = 4020.00s\n"
     )
@@ -251,7 +251,7 @@ def test_vault_cached_directory(requests_mock, mocker, mocked_time):
     )
 
     assert result.output == (
-        f"VAULT OK - cooking directory {dir_id} took "
+        f"VAULT OK - cooking directory {DIR_ID} took "
         f"10.00s and succeeded.\n"
         f"| 'total_time' = 10.00s\n"
     )
@@ -309,7 +309,7 @@ def test_vault_immediate_success_but_fetch_failed(requests_mock, mocker, mocked_
     )
 
     assert result.output == (
-        f"VAULT CRITICAL - cooking directory {dir_id} took "
+        f"VAULT CRITICAL - cooking directory {DIR_ID} took "
         f"10.00s and succeeded, but fetch failed with status code 500.\n"
         f"| 'total_time' = 10.00s\n"
     )
@@ -342,7 +342,7 @@ def test_vault_immediate_success_but_fetch_empty(requests_mock, mocker, mocked_t
     )
 
     assert result.output == (
-        f"VAULT CRITICAL - cooking directory {dir_id} took "
+        f"VAULT CRITICAL - cooking directory {DIR_ID} took "
         f"10.00s and succeeded, but fetch was empty.\n"
         f"| 'total_time' = 10.00s\n"
     )
@@ -374,7 +374,7 @@ def test_vault_immediate_success_but_no_fetch_url(requests_mock, mocker, mocked_
     )
 
     assert result.output == (
-        f"VAULT CRITICAL - cooking directory {dir_id} took 10.00s and succeeded, "
+        f"VAULT CRITICAL - cooking directory {DIR_ID} took 10.00s and succeeded, "
         f"but API response did not contain a fetch_url.\n"
         f"| 'total_time' = 10.00s\n"
     )
