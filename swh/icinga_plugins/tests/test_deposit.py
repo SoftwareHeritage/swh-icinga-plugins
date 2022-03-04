@@ -1,8 +1,9 @@
-# Copyright (C) 2019-2021  The Software Heritage developers
+# Copyright (C) 2019-2022  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
+import datetime
 import io
 import os
 import tarfile
@@ -15,7 +16,11 @@ from swh.icinga_plugins.tests.utils import invoke
 
 from .web_scenario import WebScenario
 
+POLL_INTERVAL = 10
+
 BASE_URL = "http://swh-deposit.example.org/1"
+BASE_WEB_URL = "mock://swh-web.example.org"
+PROVIDER_URL = "http://icinga-checker.example.org"
 
 COMMON_OPTIONS = [
     "--server",
@@ -26,6 +31,10 @@ COMMON_OPTIONS = [
     "test",
     "--collection",
     "testcol",
+    "--swh-web-url",
+    BASE_WEB_URL,
+    "--provider-url",
+    PROVIDER_URL,
 ]
 
 
@@ -68,6 +77,15 @@ STATUS_TEMPLATE = """
     <swh:deposit_status_detail>{status_detail}</swh:deposit_status_detail>%s
 </entry>
 """
+
+
+def compute_origin():
+    # This is the same origin the checker would compute, because we mock time.time
+    # to be constant until time.sleep is called
+    return (
+        PROVIDER_URL
+        + "/check-deposit-%s" % datetime.datetime.fromtimestamp(time.time()).isoformat()
+    )
 
 
 def status_template(
@@ -116,7 +134,9 @@ def test_status_template():
 """
     )
 
-    actual_status = status_template(status="done", swhid="10")
+    actual_status = status_template(
+        status="done", swhid="swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
+    )
     assert (
         actual_status
         == """
@@ -127,7 +147,7 @@ def test_status_template():
     <swh:deposit_id>42</swh:deposit_id>
     <swh:deposit_status>done</swh:deposit_status>
     <swh:deposit_status_detail></swh:deposit_status_detail>
-    <swh:deposit_swh_id>10</swh:deposit_swh_id>
+    <swh:deposit_swh_id>swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74</swh:deposit_swh_id>
 </entry>
 """
     )
@@ -170,6 +190,7 @@ def test_deposit_immediate_success(
     """Both deposit creation and deposit metadata update passed without delays
 
     """
+    origin = compute_origin()
     scenario = WebScenario()
 
     status_xml = status_template(
@@ -180,14 +201,31 @@ def test_deposit_immediate_success(
 
     # Initial deposit
     scenario.add_step(
-        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="done")
+        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="done"),
     )
+
+    # Checker gets the SWHID
+    swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
+    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
+
+    # Then the checker checks the metadata appeared on the website
+    scenario.add_step(
+        "get",
+        f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
+        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        [
+            {
+                "swhid": swhid,
+                "origin": origin,
+                "discovery_date": "2999-03-03T10:48:47+00:00",
+                "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
+            }
+        ],
+    )
+    scenario.add_step("get", f"{BASE_WEB_URL}/the-metadata-url", SAMPLE_METADATA)
+
     # Then metadata update
-    status_xml = status_template(
-        status="done",
-        status_detail="",
-        swhid="swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74",
-    )
     scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
     # internal deposit client does call status, then update metadata then status api
     scenario.add_step(
@@ -234,6 +272,8 @@ def test_deposit_delays(
     delay
 
     """
+    origin = compute_origin()
+
     scenario = WebScenario()
 
     scenario.add_step(
@@ -245,15 +285,29 @@ def test_deposit_delays(
     scenario.add_step(
         "get", f"{BASE_URL}/testcol/42/status/", status_template(status="loading"),
     )
+
+    # Deposit done, checker gets the SWHID
+    swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
+    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
+
+    # Then the checker checks the metadata appeared on the website
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="done"),
+        "get",
+        f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
+        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        [
+            {
+                "swhid": swhid,
+                "origin": origin,
+                "discovery_date": "2999-03-03T10:48:47+00:00",
+                "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
+            }
+        ],
     )
+    scenario.add_step("get", f"{BASE_WEB_URL}/the-metadata-url", SAMPLE_METADATA)
+
     # Then metadata update
-    status_xml = status_template(
-        status="done",
-        status_detail="",
-        swhid="swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74",
-    )
     scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
     # internal deposit client does call status, then update metadata then status api
     scenario.add_step(
@@ -299,6 +353,7 @@ def test_deposit_then_metadata_update_failed(
     """Deposit creation passed, deposit metadata update failed
 
     """
+    origin = compute_origin()
     scenario = WebScenario()
 
     scenario.add_step(
@@ -310,9 +365,28 @@ def test_deposit_then_metadata_update_failed(
     scenario.add_step(
         "get", f"{BASE_URL}/testcol/42/status/", status_template(status="loading"),
     )
+
+    # Deposit done, checker gets the SWHID
+    swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
+    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
+
+    # Then the checker checks the metadata appeared on the website
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="done"),
+        "get",
+        f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
+        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        [
+            {
+                "swhid": swhid,
+                "origin": origin,
+                "discovery_date": "2999-03-03T10:48:47+00:00",
+                "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
+            }
+        ],
     )
+    scenario.add_step("get", f"{BASE_WEB_URL}/the-metadata-url", SAMPLE_METADATA)
+
     # Then metadata update calls
     failed_status_xml = status_template(
         status="failed",  # lying here
@@ -357,6 +431,7 @@ def test_deposit_delay_warning(
     """Deposit creation exceeded delays, no deposit update occurred.
 
     """
+    origin = compute_origin()
     scenario = WebScenario()
 
     scenario.add_step(
@@ -365,9 +440,27 @@ def test_deposit_delay_warning(
     scenario.add_step(
         "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
     )
+
+    # Deposit done, checker gets the SWHID
+    swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
+    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
+
+    # Then the checker checks the metadata appeared on the website
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="done"),
+        "get",
+        f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
+        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        [
+            {
+                "swhid": swhid,
+                "origin": origin,
+                "discovery_date": "2999-03-03T10:48:47+00:00",
+                "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
+            }
+        ],
     )
+    scenario.add_step("get", f"{BASE_WEB_URL}/the-metadata-url", SAMPLE_METADATA)
 
     scenario.install_mock(requests_mock)
 
@@ -399,6 +492,7 @@ def test_deposit_delay_warning(
 def test_deposit_delay_critical(
     requests_mock, mocker, sample_archive, sample_metadata, mocked_time
 ):
+    origin = compute_origin()
     scenario = WebScenario()
 
     scenario.add_step(
@@ -407,12 +501,32 @@ def test_deposit_delay_critical(
     scenario.add_step(
         "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
     )
+
+    # Deposit done, checker gets the SWHID
+    swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
+    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
     scenario.add_step(
         "get",
         f"{BASE_URL}/testcol/42/status/",
-        status_template(status="done"),
+        status_xml,
         callback=lambda: time.sleep(60),
     )
+
+    # Then the checker checks the metadata appeared on the website
+    scenario.add_step(
+        "get",
+        f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
+        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        [
+            {
+                "swhid": swhid,
+                "origin": origin,
+                "discovery_date": "2999-03-03T10:48:47+00:00",
+                "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
+            }
+        ],
+    )
+    scenario.add_step("get", f"{BASE_WEB_URL}/the-metadata-url", SAMPLE_METADATA)
 
     scenario.install_mock(requests_mock)
 
@@ -486,6 +600,144 @@ def test_deposit_timeout(
         "| 'total_time' = 4520.00s\n"
         "| 'upload_time' = 1500.00s\n"
         "| 'validation_time' = 1510.00s\n"
+    )
+    assert result.exit_code == 2, f"Unexpected output: {result.output}"
+
+
+def test_deposit_metadata_missing(
+    requests_mock, mocker, sample_archive, sample_metadata, mocked_time
+):
+    origin = compute_origin()
+    scenario = WebScenario()
+
+    scenario.add_step(
+        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
+    )
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+    )
+
+    # Deposit done, checker gets the SWHID
+    swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
+    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
+    )
+
+    # Then the checker checks the metadata appeared on the website
+    metadata_list = [
+        {
+            # Filtered out, because wrong origin
+            "swhid": swhid,
+            "origin": "http://wrong-origin.example.org",
+            "discovery_date": "2999-03-03T10:48:47+00:00",
+            "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
+        },
+        {
+            # Filtered out, because too old
+            "swhid": swhid,
+            "origin": origin,
+            "discovery_date": "2022-03-03T09:48:47+00:00",
+            "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
+        },
+    ]
+    scenario.add_step(
+        "get",
+        f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
+        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        metadata_list,
+    )
+
+    scenario.install_mock(requests_mock)
+
+    result = invoke(
+        [
+            "check-deposit",
+            *COMMON_OPTIONS,
+            "single",
+            "--archive",
+            sample_archive,
+            "--metadata",
+            sample_metadata,
+        ],
+        catch_exceptions=True,
+    )
+
+    assert result.output == (
+        f"DEPOSIT CRITICAL - No recent metadata on {swhid} with origin {origin} in: "
+        f"{metadata_list!r}\n"
+        "| 'load_time' = 10.00s\n"
+        "| 'total_time' = 20.00s\n"
+        "| 'upload_time' = 0.00s\n"
+        "| 'validation_time' = 10.00s\n"
+    )
+    assert result.exit_code == 2, f"Unexpected output: {result.output}"
+
+
+def test_deposit_metadata_corrupt(
+    requests_mock, mocker, sample_archive, sample_metadata, mocked_time
+):
+    origin = compute_origin()
+    scenario = WebScenario()
+
+    scenario.add_step(
+        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
+    )
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+    )
+
+    # Deposit done, checker gets the SWHID
+    swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
+    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
+    )
+
+    # Then the checker checks the metadata appeared on the website
+    metadata_list = [
+        {
+            "swhid": swhid,
+            "origin": origin,
+            "discovery_date": "2999-03-03T09:48:47+00:00",
+            "metadata_url": f"{BASE_WEB_URL}/the-metadata-url",
+        },
+    ]
+    scenario.add_step(
+        "get",
+        f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
+        f"?authority=deposit_client%20http://icinga-checker.example.org",
+        metadata_list,
+    )
+    scenario.add_step(
+        "get",
+        f"{BASE_WEB_URL}/the-metadata-url",
+        SAMPLE_METADATA[0:-1],  # corrupting the metadata by dropping the last byte
+    )
+
+    scenario.install_mock(requests_mock)
+
+    result = invoke(
+        [
+            "check-deposit",
+            *COMMON_OPTIONS,
+            "single",
+            "--archive",
+            sample_archive,
+            "--metadata",
+            sample_metadata,
+        ],
+        catch_exceptions=True,
+    )
+
+    assert result.output == (
+        f"DEPOSIT CRITICAL - Metadata on {swhid} with origin {origin} (at "
+        f"{BASE_WEB_URL}/the-metadata-url) differs from uploaded Atom document (at "
+        f"{sample_metadata})\n"
+        "| 'load_time' = 10.00s\n"
+        "| 'total_time' = 20.00s\n"
+        "| 'upload_time' = 0.00s\n"
+        "| 'validation_time' = 10.00s\n"
     )
     assert result.exit_code == 2, f"Unexpected output: {result.output}"
 
