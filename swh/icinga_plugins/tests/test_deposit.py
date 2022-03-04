@@ -673,6 +673,61 @@ def test_deposit_metadata_missing(
     assert result.exit_code == 2, f"Unexpected output: {result.output}"
 
 
+def test_deposit_metadata_error(
+    requests_mock, mocker, sample_archive, sample_metadata, mocked_time
+):
+    scenario = WebScenario()
+
+    scenario.add_step(
+        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
+    )
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+    )
+
+    # Deposit done, checker gets the SWHID
+    swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
+    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    scenario.add_step(
+        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
+    )
+
+    # Then the checker checks the metadata appeared on the website
+    scenario.add_step(
+        "get",
+        f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
+        f"?authority=deposit_client+http%3A%2F%2Ficinga-checker.example.org"
+        f"&after=2022-03-04T17%3A02%3A39%2B00%3A00",
+        "foo\nbar",
+        status_code=400,
+    )
+
+    scenario.install_mock(requests_mock)
+
+    result = invoke(
+        [
+            "check-deposit",
+            *COMMON_OPTIONS,
+            "single",
+            "--archive",
+            sample_archive,
+            "--metadata",
+            sample_metadata,
+        ],
+        catch_exceptions=True,
+    )
+
+    assert result.output == (
+        "DEPOSIT CRITICAL - Getting the list of metadata returned code 400: "
+        "b'foo\\nbar'\n"
+        "| 'load_time' = 10.00s\n"
+        "| 'total_time' = 20.00s\n"
+        "| 'upload_time' = 0.00s\n"
+        "| 'validation_time' = 10.00s\n"
+    )
+    assert result.exit_code == 2, f"Unexpected output: {result.output}"
+
+
 def test_deposit_metadata_corrupt(
     requests_mock, mocker, sample_archive, sample_metadata, mocked_time
 ):

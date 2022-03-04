@@ -174,13 +174,23 @@ class DepositCheck(BaseCheck):
             return 2
 
         # Get metadata list from swh-web
-        metadata_objects = requests.get(
+        response = requests.get(
             f"{self.api_url}/api/1/raw-extrinsic-metadata/swhid/{swhid}/",
             params={
                 "authority": f"deposit_client {self._provider_url}",
                 "after": start_datetime.isoformat(),
             },
-        ).json()
+        )
+        if response.status_code != 200:
+            self.print_result(
+                "CRITICAL",
+                f"Getting the list of metadata returned code {response.status_code}: "
+                f"{response.content!r}",
+                **metrics,
+            )
+            return 2
+
+        metadata_objects = response.json()
         expected_origin = f"{self._provider_url}/{self._slug}"
 
         # Filter out objects that were clearly not created by this deposit
