@@ -387,7 +387,7 @@ def test_vault_corrupt_tarball_gzip(requests_mock, mocker, mocked_time):
         "get",
         url_fetch,
         b"this-is-not-a-tarball",
-        headers={"Content-Type": "application/gzip", "Content-Length": "100000"},
+        headers={"Content-Type": "application/gzip"},
     )
 
     scenario.install_mock(requests_mock)
@@ -427,10 +427,7 @@ def test_vault_corrupt_tarball_member(requests_mock, mocker, mocked_time):
     scenario.add_step("get", url_api, response_pending)
     scenario.add_step("get", url_api, response_done)
     scenario.add_step(
-        "get",
-        url_fetch,
-        tarball,
-        headers={"Content-Type": "application/gzip", "Content-Length": "100000"},
+        "get", url_fetch, tarball, headers={"Content-Type": "application/gzip"},
     )
 
     scenario.install_mock(requests_mock)
