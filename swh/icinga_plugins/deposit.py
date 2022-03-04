@@ -177,16 +177,13 @@ class DepositCheck(BaseCheck):
         metadata_objects = requests.get(
             f"{self.api_url}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
             f"?authority=deposit_client%20{self._provider_url}"
+            f"&after={start_datetime.isoformat()}"
         ).json()
         expected_origin = f"{self._provider_url}/{self._slug}"
 
-        # Filter out objects that were clearly not created by this deposit (ie. created
-        # before the deposit started, or that are from unrelated origins)
+        # Filter out objects that were clearly not created by this deposit
         relevant_metadata_objects = [
-            d
-            for d in metadata_objects
-            if d.get("origin") == expected_origin
-            and datetime.datetime.fromisoformat(d["discovery_date"]) >= start_datetime
+            d for d in metadata_objects if d.get("origin") == expected_origin
         ]
         if not relevant_metadata_objects:
             self.print_result(
