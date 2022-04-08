@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2020  The Software Heritage developers
+# Copyright (C) 2019-2022  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -21,7 +21,7 @@ class DepositCheck(BaseCheck):
     DEFAULT_CRITICAL_THRESHOLD = 3600
 
     def __init__(self, obj):
-        super().__init__(obj)
+        super().__init__(obj, application="deposit")
         self.api_url = obj["swh_web_url"].rstrip("/")
         self._poll_interval = obj["poll_interval"]
         self._archive_path = obj["archive"]
@@ -36,6 +36,9 @@ class DepositCheck(BaseCheck):
                 "auth": {"username": obj["username"], "password": obj["password"]},
             }
         )
+
+        self.register_prometheus_gauge("duration", "seconds", ["step", "status"])
+        self.register_prometheus_gauge("status", "")
 
     def upload_deposit(self):
         slug = (
@@ -85,6 +88,17 @@ class DepositCheck(BaseCheck):
                     f"started)",
                     **metrics,
                 )
+
+                self.collect_prometheus_metric(
+                    "duration",
+                    metrics["total_time"],
+                    [result["deposit_status"], "timeout"],
+                )
+                self.collect_prometheus_metric(
+                    "duration", metrics["total_time"], ["", "timeout"]
+                )
+                self.collect_prometheus_metric("status", 2)
+
                 sys.exit(2)
 
             time.sleep(self._poll_interval)
@@ -116,7 +130,17 @@ class DepositCheck(BaseCheck):
                 f'Deposit was rejected: {result["deposit_status_detail"]}',
                 **metrics,
             )
+            self.collect_prometheus_metric(
+                "duration", metrics["validation_time"], ["validation", "rejected"]
+            )
+            self.collect_prometheus_metric(
+                "duration", metrics["total_time"], ["validation", "rejected"]
+            )
+            self.collect_prometheus_metric("status", 2)
             return 2
+        self.collect_prometheus_metric(
+            "duration", metrics["validation_time"], ["validation", "ok"]
+        )
 
         # Wait for loading
         result = self.wait_while_status(
@@ -126,6 +150,9 @@ class DepositCheck(BaseCheck):
         metrics["load_time"] = (
             metrics["total_time"] - metrics["upload_time"] - metrics["validation_time"]
         )
+        self.collect_prometheus_metric(
+            "duration", metrics["load_time"], ["loading", result["deposit_status"]]
+        )
 
         # Check loading succeeded
         if result["deposit_status"] == "failed":
@@ -134,6 +161,10 @@ class DepositCheck(BaseCheck):
                 f'Deposit loading failed: {result["deposit_status_detail"]}',
                 **metrics,
             )
+            self.collect_prometheus_metric(
+                "duration", metrics["total_time"], ["total", "failed"]
+            )
+            self.collect_prometheus_metric("status", 2)
             return 2
 
         # Check for unexpected status
@@ -144,6 +175,10 @@ class DepositCheck(BaseCheck):
                 f'({result["deposit_status_detail"]})',
                 **metrics,
             )
+            self.collect_prometheus_metric(
+                "duration", metrics["total_time"], ["total", result["deposit_status"]]
+            )
+            self.collect_prometheus_metric("status", 2)
             return 2
 
         # Get the SWHID
@@ -229,6 +264,7 @@ class DepositCheck(BaseCheck):
         )
 
         if status_code != 0:  # Stop if any problem in the initial scenario
+            self.collect_prometheus_metric("status", status_code)
             return status_code
 
         # Initial deposit is now completed, now we can update the deposit with metadata
@@ -250,6 +286,10 @@ class DepositCheck(BaseCheck):
                 f'Deposit Metadata update failed: {result["error"]} ',
                 **metrics_update,
             )
+            self.collect_prometheus_metric(
+                "duration", metrics["total_time"], ["total", "metadata_error"]
+            )
+            self.collect_prometheus_metric("status", 2)
             return 2
 
         (status_code, status) = self.get_status(metrics_update["total_time"])
@@ -259,4 +299,9 @@ class DepositCheck(BaseCheck):
             "and succeeded.",
             **metrics_update,
         )
+
+        self.collect_prometheus_metric(
+            "duration", metrics["total_time"], ["total", "done"]
+        )
+        self.collect_prometheus_metric("status", status_code)
         return status_code

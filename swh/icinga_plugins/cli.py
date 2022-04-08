@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2020  The Software Heritage developers
+# Copyright (C) 2019-2022  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -16,14 +16,32 @@ from swh.core.cli import swh as swh_cli_group
 @swh_cli_group.group(name="icinga_plugins", context_settings=CONTEXT_SETTINGS)
 @click.option("-w", "--warning", type=int, help="Warning threshold.")
 @click.option("-c", "--critical", type=int, help="Critical threshold.")
+@click.option("--prometheus-exporter/--no-prometheus-exporter", default=False)
+@click.option(
+    "--prometheus-exporter-directory",
+    type=str,
+    default="/var/lib/prometheus/node-exporter",
+)
+@click.option("--environment", type=str, help="The tested environment")
 @click.pass_context
-def icinga_cli_group(ctx, warning, critical):
+def icinga_cli_group(
+    ctx,
+    warning,
+    critical,
+    prometheus_exporter: bool,
+    prometheus_exporter_directory: str,
+    environment: str,
+):
     """Main command for Icinga plugins"""
     ctx.ensure_object(dict)
     if warning:
         ctx.obj["warning_threshold"] = int(warning)
     if critical:
         ctx.obj["critical_threshold"] = int(critical)
+
+    ctx.obj["prometheus_enabled"] = prometheus_exporter
+    ctx.obj["prometheus_exporter_directory"] = prometheus_exporter_directory
+    ctx.obj["environment"] = environment
 
 
 @icinga_cli_group.group(name="check-vault")

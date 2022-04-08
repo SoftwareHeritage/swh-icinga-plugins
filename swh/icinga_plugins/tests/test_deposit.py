@@ -247,6 +247,9 @@ def test_deposit_immediate_success(
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",
@@ -344,6 +347,9 @@ def test_deposit_delays(
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",
@@ -427,6 +433,9 @@ def test_deposit_then_metadata_update_failed(
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",
@@ -498,6 +507,9 @@ def test_deposit_delay_warning(
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "--warning",
             "15",
             "check-deposit",
@@ -573,6 +585,9 @@ def test_deposit_delay_critical(
         [
             "--critical",
             "50",
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",
@@ -622,6 +637,9 @@ def test_deposit_timeout(
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",
@@ -873,6 +891,9 @@ def test_deposit_rejected(
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",
@@ -921,6 +942,9 @@ def test_deposit_failed(
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",
@@ -970,6 +994,9 @@ def test_deposit_unexpected_status(
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",

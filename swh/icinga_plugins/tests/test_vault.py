@@ -158,6 +158,9 @@ def test_vault_failure(requests_mock, mocker, mocked_time):
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-vault",
             "--swh-web-url",
             "mock://swh-web.example.org",
@@ -190,6 +193,9 @@ def test_vault_unknown_status(requests_mock, mocker, mocked_time):
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-vault",
             "--swh-web-url",
             "mock://swh-web.example.org",
@@ -225,6 +231,9 @@ def test_vault_timeout(requests_mock, mocker, mocked_time):
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-vault",
             "--swh-web-url",
             "mock://swh-web.example.org",
@@ -263,6 +272,9 @@ def test_vault_cached_directory(requests_mock, mocker, mocked_time):
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-vault",
             "--swh-web-url",
             "mock://swh-web.example.org",
@@ -291,6 +303,9 @@ def test_vault_no_directory(requests_mock, mocker, mocked_time):
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-vault",
             "--swh-web-url",
             "mock://swh-web.example.org",

@@ -1,4 +1,4 @@
-# Copyright (C) 2021  The Software Heritage developers
+# Copyright (C) 2021-2022  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -74,6 +74,8 @@ def test_save_code_now_success(requests_mock, mocker, mocked_time, origin_info):
     # fmt: off
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory", "/tmp",
             "check-savecodenow", "--swh-web-url", root_api_url,
             "origin", origin,
             "--visit-type", visit_type,
@@ -204,7 +206,8 @@ def test_save_code_now_threshold_exceeded(
     # fmt: off
     result = invoke(
         [
-            "check-savecodenow", "--swh-web-url", root_api_url,
+            "check-savecodenow",
+            "--swh-web-url", root_api_url,
             "origin", origin,
             "--visit-type", visit_type,
         ],
