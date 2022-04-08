@@ -427,7 +427,10 @@ def test_vault_corrupt_tarball_member(requests_mock, mocker, mocked_time):
     scenario.add_step("get", url_api, response_pending)
     scenario.add_step("get", url_api, response_done)
     scenario.add_step(
-        "get", url_fetch, tarball, headers={"Content-Type": "application/gzip"},
+        "get",
+        url_fetch,
+        tarball,
+        headers={"Content-Type": "application/gzip"},
     )
 
     scenario.install_mock(requests_mock)
@@ -468,7 +471,10 @@ def test_vault_empty_tarball(requests_mock, mocker, mocked_time):
     scenario.add_step("get", url_api, response_pending)
     scenario.add_step("get", url_api, response_done)
     scenario.add_step(
-        "get", url_fetch, tarball, headers={"Content-Type": "application/gzip"},
+        "get",
+        url_fetch,
+        tarball,
+        headers={"Content-Type": "application/gzip"},
     )
 
     scenario.install_mock(requests_mock)

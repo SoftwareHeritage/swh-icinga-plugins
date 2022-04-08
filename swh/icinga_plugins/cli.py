@@ -18,8 +18,7 @@ from swh.core.cli import swh as swh_cli_group
 @click.option("-c", "--critical", type=int, help="Critical threshold.")
 @click.pass_context
 def icinga_cli_group(ctx, warning, critical):
-    """Main command for Icinga plugins
-    """
+    """Main command for Icinga plugins"""
     ctx.ensure_object(dict)
     if warning:
         ctx.obj["warning_threshold"] = int(warning)

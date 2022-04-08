@@ -42,9 +42,7 @@ def fake_response(
 
 @pytest.fixture
 def origin_info() -> Tuple[str, str]:
-    """Build an origin info to request save code now
-
-    """
+    """Build an origin info to request save code now"""
     origin_name = random.choice(range(10))
     return random.choice(["git", "svn", "hg"]), f"mock://fake-origin-url/{origin_name}"
 
@@ -151,7 +149,9 @@ def test_save_code_now_pending_state_unsupported(
 
     # creation request
     scenario.add_step(
-        "post", api_url, fake_response(origin, visit_type, "pending", "not created"),
+        "post",
+        api_url,
+        fake_response(origin, visit_type, "pending", "not created"),
     )
     scenario.install_mock(requests_mock)
 
@@ -177,9 +177,7 @@ def test_save_code_now_pending_state_unsupported(
 def test_save_code_now_threshold_exceeded(
     requests_mock, mocker, mocked_time, origin_info
 ):
-    """Saving requests exceeding threshold should mention warning in output
-
-    """
+    """Saving requests exceeding threshold should mention warning in output"""
     scenario = WebScenario()
     visit_type, origin = origin_info
 

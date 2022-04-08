@@ -54,9 +54,7 @@ class DepositCheck(BaseCheck):
         return result
 
     def update_deposit_with_metadata(self) -> Dict[str, Any]:
-        """Trigger a metadata update on the deposit once it's completed.
-
-        """
+        """Trigger a metadata update on the deposit once it's completed."""
         deposit = self.get_deposit_status()
         swhid = deposit["deposit_swh_id"]
         assert deposit["deposit_id"] == self._deposit_id
