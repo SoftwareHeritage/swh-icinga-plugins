@@ -1,3 +1,11 @@
+swh.icingaplugins (0.5.1-1~swh1) unstable-swh; urgency=medium
+
+  * New upstream release 0.5.1     - (tagged by Vincent SELLIER
+    <vincent.sellier@softwareheritage.org> on 2022-05-10 18:11:41 +0200)
+  * Upstream changes:     - v0.5.1
+
+ -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Tue, 10 May 2022 16:15:00 +0000
+
 swh.icingaplugins (0.5.0-1~swh2) unstable-swh; urgency=medium
 
   * add a missing dependency 
