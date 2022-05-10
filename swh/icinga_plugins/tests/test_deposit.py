@@ -91,9 +91,7 @@ def compute_origin():
 def status_template(
     status: str, status_detail: str = "", swhid: Optional[str] = None
 ) -> str:
-    """Generate a proper status template out of status, status_detail and optional swhid
-
-    """
+    """Generate a proper status template out of status, status_detail and optional swhid"""
     if swhid is not None:
         template = (
             STATUS_TEMPLATE % f"\n    <swh:deposit_swh_id>{swhid}</swh:deposit_swh_id>"
@@ -160,9 +158,7 @@ def tmp_path(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def sample_metadata(tmp_path):
-    """Returns a sample metadata file's path
-
-    """
+    """Returns a sample metadata file's path"""
     path = os.path.join(tmp_path, "metadata.xml")
 
     with open(path, "w") as fd:
@@ -173,9 +169,7 @@ def sample_metadata(tmp_path):
 
 @pytest.fixture(scope="session")
 def sample_archive(tmp_path):
-    """Returns a sample archive's path
-
-    """
+    """Returns a sample archive's path"""
     path = os.path.join(tmp_path, "archive.tar.gz")
 
     with tarfile.open(path, "w:gz") as tf:
@@ -187,9 +181,7 @@ def sample_archive(tmp_path):
 def test_deposit_immediate_success(
     requests_mock, mocker, sample_archive, sample_metadata, mocked_time
 ):
-    """Both deposit creation and deposit metadata update passed without delays
-
-    """
+    """Both deposit creation and deposit metadata update passed without delays"""
     origin = compute_origin()
     scenario = WebScenario()
 
@@ -201,12 +193,18 @@ def test_deposit_immediate_success(
 
     # Initial deposit
     scenario.add_step(
-        "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="done"),
+        "post",
+        f"{BASE_URL}/testcol/",
+        ENTRY_TEMPLATE.format(status="done"),
     )
 
     # Checker gets the SWHID
     swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
-    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    status_xml = status_template(
+        status="done",
+        status_detail="",
+        swhid=swhid,
+    )
     scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
 
     # Then the checker checks the metadata appeared on the website
@@ -230,19 +228,28 @@ def test_deposit_immediate_success(
     scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
     # internal deposit client does call status, then update metadata then status api
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_xml,
     )
     scenario.add_step(
-        "put", f"{BASE_URL}/testcol/42/atom/", status_xml,
+        "put",
+        f"{BASE_URL}/testcol/42/atom/",
+        status_xml,
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_xml,
     )
 
     scenario.install_mock(requests_mock)
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",
@@ -281,15 +288,23 @@ def test_deposit_delays(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_template(status="verified"),
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="loading"),
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_template(status="loading"),
     )
 
     # Deposit done, checker gets the SWHID
     swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
-    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    status_xml = status_template(
+        status="done",
+        status_detail="",
+        swhid=swhid,
+    )
     scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
 
     # Then the checker checks the metadata appeared on the website
@@ -313,19 +328,28 @@ def test_deposit_delays(
     scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
     # internal deposit client does call status, then update metadata then status api
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_xml,
     )
     scenario.add_step(
-        "put", f"{BASE_URL}/testcol/42/atom/", status_xml,
+        "put",
+        f"{BASE_URL}/testcol/42/atom/",
+        status_xml,
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_xml,
     )
 
     scenario.install_mock(requests_mock)
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",
@@ -352,9 +376,7 @@ def test_deposit_delays(
 def test_deposit_then_metadata_update_failed(
     requests_mock, mocker, sample_archive, sample_metadata, mocked_time
 ):
-    """Deposit creation passed, deposit metadata update failed
-
-    """
+    """Deposit creation passed, deposit metadata update failed"""
     origin = compute_origin()
     scenario = WebScenario()
 
@@ -362,15 +384,23 @@ def test_deposit_then_metadata_update_failed(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_template(status="verified"),
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="loading"),
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_template(status="loading"),
     )
 
     # Deposit done, checker gets the SWHID
     swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
-    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    status_xml = status_template(
+        status="done",
+        status_detail="",
+        swhid=swhid,
+    )
     scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
 
     # Then the checker checks the metadata appeared on the website
@@ -403,6 +433,9 @@ def test_deposit_then_metadata_update_failed(
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",
@@ -431,9 +464,7 @@ def test_deposit_then_metadata_update_failed(
 def test_deposit_delay_warning(
     requests_mock, mocker, sample_archive, sample_metadata, mocked_time
 ):
-    """Deposit creation exceeded delays, no deposit update occurred.
-
-    """
+    """Deposit creation exceeded delays, no deposit update occurred."""
     origin = compute_origin()
     scenario = WebScenario()
 
@@ -441,12 +472,18 @@ def test_deposit_delay_warning(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_template(status="verified"),
     )
 
     # Deposit done, checker gets the SWHID
     swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
-    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    status_xml = status_template(
+        status="done",
+        status_detail="",
+        swhid=swhid,
+    )
     scenario.add_step("get", f"{BASE_URL}/testcol/42/status/", status_xml)
 
     # Then the checker checks the metadata appeared on the website
@@ -470,6 +507,9 @@ def test_deposit_delay_warning(
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "--warning",
             "15",
             "check-deposit",
@@ -503,12 +543,18 @@ def test_deposit_delay_critical(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_template(status="verified"),
     )
 
     # Deposit done, checker gets the SWHID
     swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
-    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    status_xml = status_template(
+        status="done",
+        status_detail="",
+        swhid=swhid,
+    )
     scenario.add_step(
         "get",
         f"{BASE_URL}/testcol/42/status/",
@@ -539,6 +585,9 @@ def test_deposit_delay_critical(
         [
             "--critical",
             "50",
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",
@@ -588,6 +637,9 @@ def test_deposit_timeout(
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",
@@ -619,14 +671,22 @@ def test_deposit_metadata_missing(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_template(status="verified"),
     )
 
     # Deposit done, checker gets the SWHID
     swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
-    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    status_xml = status_template(
+        status="done",
+        status_detail="",
+        swhid=swhid,
+    )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_xml,
     )
 
     # Then the checker checks the metadata appeared on the website
@@ -682,14 +742,22 @@ def test_deposit_metadata_error(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_template(status="verified"),
     )
 
     # Deposit done, checker gets the SWHID
     swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
-    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    status_xml = status_template(
+        status="done",
+        status_detail="",
+        swhid=swhid,
+    )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_xml,
     )
 
     # Then the checker checks the metadata appeared on the website
@@ -738,14 +806,22 @@ def test_deposit_metadata_corrupt(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_template(status="verified"),
     )
 
     # Deposit done, checker gets the SWHID
     swhid = "swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
-    status_xml = status_template(status="done", status_detail="", swhid=swhid,)
+    status_xml = status_template(
+        status="done",
+        status_detail="",
+        swhid=swhid,
+    )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_xml,
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_xml,
     )
 
     # Then the checker checks the metadata appeared on the website
@@ -815,6 +891,9 @@ def test_deposit_rejected(
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",
@@ -844,10 +923,14 @@ def test_deposit_failed(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_template(status="verified"),
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="loading"),
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_template(status="loading"),
     )
     scenario.add_step(
         "get",
@@ -859,6 +942,9 @@ def test_deposit_failed(
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",
@@ -889,10 +975,14 @@ def test_deposit_unexpected_status(
         "post", f"{BASE_URL}/testcol/", ENTRY_TEMPLATE.format(status="deposited")
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="verified"),
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_template(status="verified"),
     )
     scenario.add_step(
-        "get", f"{BASE_URL}/testcol/42/status/", status_template(status="loading"),
+        "get",
+        f"{BASE_URL}/testcol/42/status/",
+        status_template(status="loading"),
     )
     scenario.add_step(
         "get",
@@ -904,6 +994,9 @@ def test_deposit_unexpected_status(
 
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory",
+            "/tmp",
             "check-deposit",
             *COMMON_OPTIONS,
             "single",

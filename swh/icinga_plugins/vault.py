@@ -1,10 +1,11 @@
-# Copyright (C) 2019  The Software Heritage developers
+# Copyright (C) 2019-2022  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
 import tarfile
 import time
+from typing import List
 
 import requests
 
@@ -23,10 +24,13 @@ class VaultCheck(BaseCheck):
     DEFAULT_CRITICAL_THRESHOLD = 3600
 
     def __init__(self, obj):
-        super().__init__(obj)
+        super().__init__(obj, application="vault")
         self._swh_storage = get_storage("remote", url=obj["swh_storage_url"])
         self._swh_web_url = obj["swh_web_url"]
         self._poll_interval = obj["poll_interval"]
+
+        self.register_prometheus_gauge("status", "")
+        self.register_prometheus_gauge("duration", "seconds", ["step", "status"])
 
     def _url_for_dir(self, dir_id):
         return self._swh_web_url + f"/api/1/vault/directory/{dir_id.hex()}/"
@@ -43,6 +47,14 @@ class VaultCheck(BaseCheck):
             response = requests.get(self._url_for_dir(dir_id))
             if response.status_code == 404:
                 return dir_id
+
+    def _collect_prometheus_metrics(
+        self, status: int, duration: float, labels: List[str]
+    ) -> None:
+        self.collect_prometheus_metric("status", status)
+        self.collect_prometheus_metric(
+            "duration", duration, labels,
+        )
 
     def main(self):
         try:
@@ -72,6 +84,9 @@ class VaultCheck(BaseCheck):
                     f'{result["progress_message"]}',
                     total_time=total_time,
                 )
+
+                self._collect_prometheus_metrics(2, total_time, ["cooking", "timeout"])
+
                 return 2
 
         if result["status"] == "failed":
@@ -81,6 +96,9 @@ class VaultCheck(BaseCheck):
                 f'and failed with: {result["progress_message"]}',
                 total_time=total_time,
             )
+
+            self._collect_prometheus_metrics(2, total_time, ["cooking", "failed"])
+
             return 2
         elif result["status"] != "done":
             self.print_result(
@@ -89,6 +107,8 @@ class VaultCheck(BaseCheck):
                 f'and resulted in unknown status: {result["status"]}',
                 total_time=total_time,
             )
+
+            self._collect_prometheus_metrics(2, total_time, ["cooking", "unknown"])
             return 2
 
         (status_code, status) = self.get_status(total_time)
@@ -100,6 +120,7 @@ class VaultCheck(BaseCheck):
                 f"and succeeded, but API response did not contain a fetch_url.",
                 total_time=total_time,
             )
+            self._collect_prometheus_metrics(2, total_time, ["fetch", "no_url"])
             return 2
 
         with requests.get(result["fetch_url"], stream=True) as fetch_response:
@@ -113,6 +134,7 @@ class VaultCheck(BaseCheck):
                     f"{fetch_response.status_code}.",
                     total_time=total_time,
                 )
+                self._collect_prometheus_metrics(2, total_time, ["fetch", "error"])
                 return 2
 
             content_type = fetch_response.headers.get("Content-Type")
@@ -121,6 +143,9 @@ class VaultCheck(BaseCheck):
                     "CRITICAL",
                     f"Unexpected Content-Type when downloading bundle: {content_type}",
                     total_time=total_time,
+                )
+                self._collect_prometheus_metrics(
+                    2, total_time, ["download", "unexpected_content_type"]
                 )
                 return 2
 
@@ -140,12 +165,18 @@ class VaultCheck(BaseCheck):
                             f"Unexpected member in tarball: {tarinfo.name}",
                             total_time=total_time,
                         )
+                        self._collect_prometheus_metrics(
+                            2, total_time, ["check", "archive_content"]
+                        )
                         return 2
             except tarfile.ReadError as e:
                 self.print_result(
                     "CRITICAL",
                     f"ReadError while reading tarball: {e}",
                     total_time=total_time,
+                )
+                self._collect_prometheus_metrics(
+                    2, total_time, ["check", "archive_content"]
                 )
                 return 2
             except tarfile.StreamError as e:
@@ -156,12 +187,18 @@ class VaultCheck(BaseCheck):
                         f"StreamError while reading tarball (empty file?): {e}",
                         total_time=total_time,
                     )
+                    self._collect_prometheus_metrics(
+                        2, total_time, ["check", "archive_content"]
+                    )
                     return 2
 
                 self.print_result(
                     "CRITICAL",
                     f"StreamError while reading tarball: {e}",
                     total_time=total_time,
+                )
+                self._collect_prometheus_metrics(
+                    2, total_time, ["check", "archive_content"]
                 )
                 return 2
 
@@ -171,4 +208,6 @@ class VaultCheck(BaseCheck):
             f"and succeeded.",
             total_time=total_time,
         )
+
+        self._collect_prometheus_metrics(status_code, total_time, ["end", ""])
         return status_code

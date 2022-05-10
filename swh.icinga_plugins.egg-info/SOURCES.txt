@@ -1,3 +1,4 @@
+.git-blame-ignore-revs
 .gitignore
 .pre-commit-config.yaml
 AUTHORS
@@ -40,6 +41,7 @@ swh/icinga_plugins/save_code_now.py
 swh/icinga_plugins/vault.py
 swh/icinga_plugins/tests/__init__.py
 swh/icinga_plugins/tests/conftest.py
+swh/icinga_plugins/tests/test_base_check.py
 swh/icinga_plugins/tests/test_deposit.py
 swh/icinga_plugins/tests/test_save_code_now.py
 swh/icinga_plugins/tests/test_vault.py
