@@ -21,11 +21,14 @@ class SaveCodeNowCheck(BaseCheck):
     DEFAULT_CRITICAL_THRESHOLD = 120
 
     def __init__(self, obj: Dict, origin: str, visit_type: str) -> None:
-        super().__init__(obj)
+        super().__init__(obj, application="scn")
         self.api_url = obj["swh_web_url"].rstrip("/")
         self.poll_interval = obj["poll_interval"]
         self.origin = origin
         self.visit_type = visit_type
+
+        self.register_prometheus_gauge("duration", "seconds", ["status"])
+        self.register_prometheus_gauge("status", "")
 
     @staticmethod
     def api_url_scn(root_api_url: str, origin: str, visit_type: str) -> str:
@@ -85,6 +88,8 @@ class SaveCodeNowCheck(BaseCheck):
                     f'and has status: {result["save_task_status"]}.',
                     total_time=total_time,
                 )
+                self.collect_prometheus_metric("duration", total_time, ["timeout"])
+                self.collect_prometheus_metric("status", 2)
                 return 2
 
         if result[status_key] == "succeeded":
@@ -94,6 +99,8 @@ class SaveCodeNowCheck(BaseCheck):
                 f"{REPORT_MSG} {origin_info} took {total_time:.2f}s and succeeded.",
                 total_time=total_time,
             )
+            self.collect_prometheus_metric("duration", total_time, ["succeeded"])
+            self.collect_prometheus_metric("status", status_code)
             return status_code
         elif result[status_key] == "failed":
             self.print_result(
@@ -101,6 +108,8 @@ class SaveCodeNowCheck(BaseCheck):
                 f"{REPORT_MSG} {origin_info} took {total_time:.2f}s and failed.",
                 total_time=total_time,
             )
+            self.collect_prometheus_metric("duration", total_time, ["failed"])
+            self.collect_prometheus_metric("status", 2)
             return 2
         else:
             self.print_result(
@@ -110,4 +119,6 @@ class SaveCodeNowCheck(BaseCheck):
                 f"{result['save_request_status']} ; {result[status_key]}.",
                 total_time=total_time,
             )
+            self.collect_prometheus_metric("duration", total_time, ["failed"])
+            self.collect_prometheus_metric("status", 2)
             return 2
