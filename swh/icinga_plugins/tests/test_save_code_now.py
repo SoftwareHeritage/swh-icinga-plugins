@@ -1,4 +1,4 @@
-# Copyright (C) 2021  The Software Heritage developers
+# Copyright (C) 2021-2022  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -42,9 +42,7 @@ def fake_response(
 
 @pytest.fixture
 def origin_info() -> Tuple[str, str]:
-    """Build an origin info to request save code now
-
-    """
+    """Build an origin info to request save code now"""
     origin_name = random.choice(range(10))
     return random.choice(["git", "svn", "hg"]), f"mock://fake-origin-url/{origin_name}"
 
@@ -76,6 +74,8 @@ def test_save_code_now_success(requests_mock, mocker, mocked_time, origin_info):
     # fmt: off
     result = invoke(
         [
+            "--prometheus-exporter",
+            "--prometheus-exporter-directory", "/tmp",
             "check-savecodenow", "--swh-web-url", root_api_url,
             "origin", origin,
             "--visit-type", visit_type,
@@ -151,7 +151,9 @@ def test_save_code_now_pending_state_unsupported(
 
     # creation request
     scenario.add_step(
-        "post", api_url, fake_response(origin, visit_type, "pending", "not created"),
+        "post",
+        api_url,
+        fake_response(origin, visit_type, "pending", "not created"),
     )
     scenario.install_mock(requests_mock)
 
@@ -177,9 +179,7 @@ def test_save_code_now_pending_state_unsupported(
 def test_save_code_now_threshold_exceeded(
     requests_mock, mocker, mocked_time, origin_info
 ):
-    """Saving requests exceeding threshold should mention warning in output
-
-    """
+    """Saving requests exceeding threshold should mention warning in output"""
     scenario = WebScenario()
     visit_type, origin = origin_info
 
@@ -206,7 +206,8 @@ def test_save_code_now_threshold_exceeded(
     # fmt: off
     result = invoke(
         [
-            "check-savecodenow", "--swh-web-url", root_api_url,
+            "check-savecodenow",
+            "--swh-web-url", root_api_url,
             "origin", origin,
             "--visit-type", visit_type,
         ],
