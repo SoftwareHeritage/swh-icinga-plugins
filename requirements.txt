@@ -2,4 +2,3 @@ click
 psycopg2
 requests
 prometheus-client
-typing

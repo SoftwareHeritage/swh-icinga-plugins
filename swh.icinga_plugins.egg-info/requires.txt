@@ -2,7 +2,6 @@ click
 psycopg2
 requests
 prometheus-client
-typing
 swh.core[http]>=0.3
 swh.deposit>=0.3
 swh.storage>=0.0.162
