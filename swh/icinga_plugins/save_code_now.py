@@ -1,10 +1,11 @@
-# Copyright (C) 2021  The Software Heritage developers
+# Copyright (C) 2021-2022  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
+import random
 import time
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import requests
 
@@ -20,8 +21,12 @@ class SaveCodeNowCheck(BaseCheck):
     DEFAULT_WARNING_THRESHOLD = 60
     DEFAULT_CRITICAL_THRESHOLD = 120
 
-    def __init__(self, obj: Dict, origin: str, visit_type: str) -> None:
+    def __init__(
+        self, obj: Dict, origin: Union[str, List[str]], visit_type: str
+    ) -> None:
         super().__init__(obj, application="scn")
+        if isinstance(origin, list):
+            origin = random.choice(origin)
         self.api_url = obj["swh_web_url"].rstrip("/")
         self.poll_interval = obj["poll_interval"]
         self.origin = origin
@@ -38,8 +43,8 @@ class SaveCodeNowCheck(BaseCheck):
     def main(self) -> int:
         """Scenario description:
 
-        1. Requests a save code now request via the api for origin self.origin with type
-        self.visit_type.
+        1. Requests a save code now request via the api for the given origin (or
+        an origin picked at random in the list) with type self.visit_type.
 
         2. Polling regularly at self.poll_interval seconds the completion status.
 
