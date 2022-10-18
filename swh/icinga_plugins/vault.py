@@ -53,7 +53,9 @@ class VaultCheck(BaseCheck):
     ) -> None:
         self.collect_prometheus_metric("status", status)
         self.collect_prometheus_metric(
-            "duration", duration, labels,
+            "duration",
+            duration,
+            labels,
         )
 
     def main(self):
