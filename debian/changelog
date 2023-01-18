@@ -1,8 +1,12 @@
-swh.icingaplugins (0.5.2-1~swh1~bpo10+1) buster-swh; urgency=medium
+swh.icingaplugins (0.5.3-1~swh1) unstable-swh; urgency=medium
 
-  * Rebuild for buster-swh
+  * New upstream release 0.5.3     - (tagged by Nicolas Dandrimont
+    <nicolas@dandrimont.eu> on 2023-01-18 15:24:35 +0100)
+  * Upstream changes:     - Release swh.icinga_plugins 0.5.3     - Hook
+    up multi-origin save code now check to the CLI     - Ensure vault
+    tests work on Python3.11     - spruce up formatting
 
- -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Tue, 27 Sep 2022 12:20:36 +0000
+ -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Wed, 18 Jan 2023 14:28:09 +0000
 
 swh.icingaplugins (0.5.2-1~swh1) unstable-swh; urgency=medium
 

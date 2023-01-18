@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: swh.icinga-plugins
-Version: 0.5.2
+Version: 0.5.3
 Summary: Icinga plugins for Software Heritage infrastructure monitoring
 Home-page: https://forge.softwareheritage.org/diffusion/swh-icinga-plugins
 Author: Software Heritage developers

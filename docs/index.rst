@@ -9,9 +9,11 @@ Python module template, used as skeleton to create new modules.
    :caption: Contents:
 
 
-Indices and tables
-==================
+.. only:: standalone_package_doc
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   Indices and tables
+   ------------------
+
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`
