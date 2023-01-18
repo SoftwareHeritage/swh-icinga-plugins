@@ -90,7 +90,7 @@ def check_scn(ctx, **kwargs):
 
 
 @check_scn.command(name="origin")
-@click.argument("origin", type=str)
+@click.argument("origin", type=str, nargs=-1)
 @click.option("--visit-type", type=str, required=True, help="Visit type for origin")
 @click.pass_context
 def check_scn_origin(ctx, origin, visit_type):
@@ -101,7 +101,7 @@ def check_scn_origin(ctx, origin, visit_type):
     """
     from .save_code_now import SaveCodeNowCheck
 
-    sys.exit(SaveCodeNowCheck(ctx.obj, origin, visit_type).main())
+    sys.exit(SaveCodeNowCheck(ctx.obj, list(origin), visit_type).main())
 
 
 @icinga_cli_group.group(name="check-deposit")
