@@ -16,6 +16,9 @@ DIR_ID = "ab" * 20
 
 url_api = f"mock://swh-web.example.org/api/1/vault/directory/{DIR_ID}/"
 url_fetch = f"mock://swh-web.example.org/api/1/vault/directory/{DIR_ID}/raw/"
+url_fetch_redirected = (
+    f"mock://swh-web-redirected.example.org/api/1/vault/directory/{DIR_ID}/raw/"
+)
 
 
 def _make_tarfile():
@@ -74,6 +77,50 @@ class FakeStorage:
 
     def directory_get_random(self):
         return bytes.fromhex(DIR_ID)
+
+
+def test_vault_immediate_redirect(requests_mock, mocker, mocked_time):
+    scenario = WebScenario()
+
+    scenario.add_step("get", url_api, {}, status_code=404)
+    scenario.add_step("post", url_api, response_pending)
+    scenario.add_step("get", url_api, response_done)
+    scenario.add_step(
+        "get",
+        url_fetch,
+        {},
+        status_code=302,
+        headers={"Location": url_fetch_redirected},
+    )
+    scenario.add_step(
+        "get",
+        url_fetch_redirected,
+        TARBALL,
+        headers={"Content-Type": "application/octet-stream"},
+    )
+
+    scenario.install_mock(requests_mock)
+
+    get_storage_mock = mocker.patch("swh.icinga_plugins.vault.get_storage")
+    get_storage_mock.side_effect = FakeStorage
+
+    result = invoke(
+        [
+            "check-vault",
+            "--swh-web-url",
+            "mock://swh-web.example.org",
+            "--swh-storage-url",
+            "foo://example.org",
+            "directory",
+        ]
+    )
+
+    assert result.output == (
+        f"VAULT OK - cooking directory {DIR_ID} took "
+        f"10.00s and succeeded.\n"
+        f"| 'total_time' = 10.00s\n"
+    )
+    assert result.exit_code == 0, result.output
 
 
 def test_vault_immediate_success(requests_mock, mocker, mocked_time):
