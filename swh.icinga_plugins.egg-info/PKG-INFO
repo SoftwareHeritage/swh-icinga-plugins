@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: swh.icinga-plugins
-Version: 0.5.3
+Version: 0.5.4
 Summary: Icinga plugins for Software Heritage infrastructure monitoring
 Home-page: https://forge.softwareheritage.org/diffusion/swh-icinga-plugins
 Author: Software Heritage developers
@@ -15,9 +15,23 @@ Classifier: Operating System :: OS Independent
 Classifier: Development Status :: 3 - Alpha
 Requires-Python: >=3.7
 Description-Content-Type: text/markdown
-Provides-Extra: testing
 License-File: LICENSE
 License-File: AUTHORS
+Requires-Dist: click
+Requires-Dist: psycopg2
+Requires-Dist: requests
+Requires-Dist: prometheus-client
+Requires-Dist: swh.core[http]>=0.3
+Requires-Dist: swh.deposit>=0.3
+Requires-Dist: swh.storage>=0.0.162
+Provides-Extra: testing
+Requires-Dist: pytest; extra == "testing"
+Requires-Dist: pytest-mock; extra == "testing"
+Requires-Dist: requests-mock; extra == "testing"
+Requires-Dist: types-click; extra == "testing"
+Requires-Dist: types-requests; extra == "testing"
+Requires-Dist: types-python-dateutil; extra == "testing"
+Requires-Dist: types-PyYAML; extra == "testing"
 
 swh-icinga-plugins
 ==================
