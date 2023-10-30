@@ -141,7 +141,7 @@ class VaultCheck(BaseCheck):
                 return 2
 
             content_type = fetch_response.headers.get("Content-Type")
-            if content_type != "application/gzip":
+            if content_type not in ("application/gzip", "application/octet-stream"):
                 self.print_result(
                     "CRITICAL",
                     f"Unexpected Content-Type when downloading bundle: {content_type}",
