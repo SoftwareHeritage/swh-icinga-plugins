@@ -1,3 +1,12 @@
+swh.icingaplugins (0.5.4-1~swh1) unstable-swh; urgency=medium
+
+  * New upstream release 0.5.4     - (tagged by Nicolas Dandrimont
+    <nicolas@dandrimont.eu> on 2023-10-30 13:19:15 +0100)
+  * Upstream changes:     - Release swh.icinga.plugins v0.5.4     -
+    Support modern vault deployment
+
+ -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Mon, 30 Oct 2023 12:22:26 +0000
+
 swh.icingaplugins (0.5.3-1~swh1) unstable-swh; urgency=medium
 
   * New upstream release 0.5.3     - (tagged by Nicolas Dandrimont
