@@ -1,8 +1,6 @@
-Software Heritage - Python module template
-==========================================
+.. _swh-icinga-plugins:
 
-Python module template, used as skeleton to create new modules.
-
+.. include:: README.rst
 
 .. toctree::
    :maxdepth: 2

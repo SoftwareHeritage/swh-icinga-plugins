@@ -760,12 +760,24 @@ def test_deposit_metadata_error(
         status_xml,
     )
 
-    # Then the checker checks the metadata appeared on the website
+    url_metadata = (
+        f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
+        "?authority=deposit_client+http%3A%2F%2Ficinga-checker.example.org"
+        "&after=2022-03-04T17%3A02%3A39%2B00%3A00"
+    )
+    # Then the checker checks the metadata appeared on the website, but the first time,
+    # it's rate limited
     scenario.add_step(
         "get",
-        f"{BASE_WEB_URL}/api/1/raw-extrinsic-metadata/swhid/{swhid}/"
-        f"?authority=deposit_client+http%3A%2F%2Ficinga-checker.example.org"
-        f"&after=2022-03-04T17%3A02%3A39%2B00%3A00",
+        url_metadata,
+        # rate limited
+        {},
+        status_code=429,
+    )
+    # Then this fails to retrieve the response for some reason
+    scenario.add_step(
+        "get",
+        url_metadata,
         "foo\nbar",
         status_code=400,
     )
