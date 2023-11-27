@@ -1,18 +1,40 @@
-# Copyright (C) 2019-2022  The Software Heritage developers
+# Copyright (C) 2019-2023  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
 import datetime
+import logging
 import sys
 import time
 from typing import Any, Dict, Optional
 
 import requests
+from tenacity.before_sleep import before_sleep_log
 
+from swh.core.retry import http_retry
 from swh.deposit.client import PublicApiDepositClient
 
 from .base_check import BaseCheck
+
+logger = logging.getLogger(__name__)
+
+
+@http_retry(
+    before_sleep=before_sleep_log(logger, logging.WARNING),
+)
+def requests_get(url: str, params: Dict = {}):
+    """Get queries with retry on throttling exception.
+
+    Remaining issues (< 429) are to be dealt with with the client call code.
+
+    """
+    response = requests.get(url, params=params)
+
+    if 429 <= response.status_code:
+        response.raise_for_status()
+
+    return response
 
 
 class DepositCheck(BaseCheck):
@@ -207,14 +229,15 @@ class DepositCheck(BaseCheck):
             return 2
 
         # Get metadata list from swh-web
-        response = requests.get(
+        response = requests_get(
             f"{self.api_url}/api/1/raw-extrinsic-metadata/swhid/{swhid}/",
             params={
                 "authority": f"deposit_client {self._provider_url}",
                 "after": start_datetime.isoformat(),
             },
         )
-        if response.status_code != 200:
+        status_code = response.status_code
+        if status_code != 200 and status_code != 429:
             self.print_result(
                 "CRITICAL",
                 f"Getting the list of metadata returned code {response.status_code}: "
@@ -241,7 +264,7 @@ class DepositCheck(BaseCheck):
 
         # Check the metadata was loaded as-is
         metadata_url = relevant_metadata_objects[0]["metadata_url"]
-        metadata_file = requests.get(metadata_url).content
+        metadata_file = requests_get(metadata_url).content
         with open(self._metadata_path, "rb") as fd:
             expected_metadata_file = fd.read()
         if metadata_file != expected_metadata_file:

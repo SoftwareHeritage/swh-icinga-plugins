@@ -12,7 +12,7 @@ from setuptools import find_packages, setup
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, "README.md"), encoding="utf-8") as f:
+with open(path.join(here, "README.rst"), encoding="utf-8") as f:
     long_description = f.read()
 
 
@@ -46,7 +46,7 @@ setup(
     name="swh.icinga_plugins",
     description="Icinga plugins for Software Heritage infrastructure " "monitoring",
     long_description=long_description,
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/x-rst",
     python_requires=">=3.7",
     author="Software Heritage developers",
     author_email="swh-devel@inria.fr",
