@@ -2,7 +2,6 @@
 <entry xmlns="http://www.w3.org/2005/Atom"
 xmlns:codemeta="https://doi.org/10.5063/SCHEMA/CODEMETA-2.0">
   <title>Je suis GPL</title>
-  <client>swh</client>
   <codemeta:url>https://forge.softwareheritage.org/source/jesuisgpl/</codemeta:url>
   <codemeta:dateCreated>2018-01-05</codemeta:dateCreated>
   <codemeta:description>Je suis GPL is a modified version of GNU Hello whose
@@ -19,6 +18,5 @@ xmlns:codemeta="https://doi.org/10.5063/SCHEMA/CODEMETA-2.0">
   </codemeta:license>
   <codemeta:author>
     <codemeta:name>Stefano Zacchiroli</codemeta:name>
-    <codemeta:jobTitle>Maintainer</codemeta:jobTitle>
   </codemeta:author>
 </entry>
