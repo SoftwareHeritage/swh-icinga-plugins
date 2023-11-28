@@ -1,8 +1,11 @@
-swh.icingaplugins (0.5.5-1~swh1~bpo10+1) buster-swh; urgency=medium
+swh.icingaplugins (0.5.6-1~swh1) unstable-swh; urgency=medium
 
-  * Rebuild for buster-swh
+  * New upstream release 0.5.6     - (tagged by Valentin Lorentz
+    <vlorentz@softwareheritage.org> on 2023-11-28 11:54:12 +0100)
+  * Upstream changes:     - v0.5.6     - * jesuisgpl.tgz.xml: Remove
+    elements with invalid tags
 
- -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Mon, 27 Nov 2023 14:01:39 +0000
+ -- Software Heritage autobuilder (on jenkins-debian1) <jenkins@jenkins-debian1.internal.softwareheritage.org>  Tue, 28 Nov 2023 10:57:55 +0000
 
 swh.icingaplugins (0.5.5-1~swh1) unstable-swh; urgency=medium
 
