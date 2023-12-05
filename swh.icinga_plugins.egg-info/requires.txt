@@ -7,6 +7,13 @@ swh.deposit>=0.3
 swh.storage>=0.0.162
 
 [testing]
+click
+psycopg2
+requests
+prometheus-client
+swh.core[http]>=0.3
+swh.deposit>=0.3
+swh.storage>=0.0.162
 pytest
 pytest-mock
 requests-mock

@@ -1,0 +1,11 @@
+# Changes here will be overwritten by Copier
+_commit: v0.1.6
+_src_path: https://gitlab.softwareheritage.org/swh/devel/swh-py-template.git
+description: Icinga plugins for Software Heritage infrastructure monitoring
+distribution_name: swh-icinga-plugins
+have_cli: true
+have_workers: false
+package_root: swh/icinga_plugins
+project_name: swh.icinga_plugins
+python_minimal_version: '3.7'
+readme_format: rst
