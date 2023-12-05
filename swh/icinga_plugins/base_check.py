@@ -42,7 +42,7 @@ class BaseCheck:
 
     def print_result(self, status_type, status_string, **metrics):
         print(f"{self.TYPE} {status_type} - {status_string}")
-        for (metric_name, metric_value) in sorted(metrics.items()):
+        for metric_name, metric_value in sorted(metrics.items()):
             print(f"| '{metric_name}' = {metric_value:.2f}s")
 
     def collect_prometheus_metric(
