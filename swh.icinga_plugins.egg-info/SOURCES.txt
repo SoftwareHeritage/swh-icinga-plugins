@@ -1,3 +1,4 @@
+.copier-answers.yml
 .git-blame-ignore-revs
 .gitignore
 .pre-commit-config.yaml
@@ -5,7 +6,6 @@ AUTHORS
 CODE_OF_CONDUCT.md
 CONTRIBUTORS
 LICENSE
-MANIFEST.in
 Makefile
 README.rst
 mypy.ini
@@ -15,17 +15,13 @@ requirements-swh.txt
 requirements-test.txt
 requirements.txt
 setup.cfg
-setup.py
 tox.ini
-data/deposit/jesuisgpl.tgz
-data/deposit/jesuisgpl.tgz.xml
 docs/.gitignore
 docs/Makefile
 docs/conf.py
 docs/index.rst
 docs/_static/.placeholder
 docs/_templates/.placeholder
-swh/__init__.py
 swh.icinga_plugins.egg-info/PKG-INFO
 swh.icinga_plugins.egg-info/SOURCES.txt
 swh.icinga_plugins.egg-info/dependency_links.txt
@@ -39,6 +35,8 @@ swh/icinga_plugins/deposit.py
 swh/icinga_plugins/py.typed
 swh/icinga_plugins/save_code_now.py
 swh/icinga_plugins/vault.py
+swh/icinga_plugins/data/deposit/jesuisgpl.tgz
+swh/icinga_plugins/data/deposit/jesuisgpl.tgz.xml
 swh/icinga_plugins/tests/__init__.py
 swh/icinga_plugins/tests/conftest.py
 swh/icinga_plugins/tests/test_base_check.py

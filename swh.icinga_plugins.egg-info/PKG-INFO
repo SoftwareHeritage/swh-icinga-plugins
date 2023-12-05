@@ -1,13 +1,13 @@
 Metadata-Version: 2.1
 Name: swh.icinga-plugins
-Version: 0.5.6
+Version: 0.6.0
 Summary: Icinga plugins for Software Heritage infrastructure monitoring
-Home-page: https://forge.softwareheritage.org/diffusion/swh-icinga-plugins
-Author: Software Heritage developers
-Author-email: swh-devel@inria.fr
-Project-URL: Bug Reports, https://forge.softwareheritage.org/maniphest
+Author-email: Software Heritage developers <swh-devel@inria.fr>
+Project-URL: Homepage, https://gitlab.softwareheritage.org/swh/devel/swh-icinga-plugins
+Project-URL: Bug Reports, https://gitlab.softwareheritage.org/swh/devel/swh-icinga-plugins/-/issues
 Project-URL: Funding, https://www.softwareheritage.org/donate
-Project-URL: Source, https://forge.softwareheritage.org/source/swh-icinga-plugins
+Project-URL: Documentation, https://docs.softwareheritage.org/devel/swh-icinga-plugins/
+Project-URL: Source, https://gitlab.softwareheritage.org/swh/devel/swh-icinga-plugins.git
 Classifier: Programming Language :: Python :: 3
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
@@ -25,6 +25,13 @@ Requires-Dist: swh.core[http]>=0.3
 Requires-Dist: swh.deposit>=0.3
 Requires-Dist: swh.storage>=0.0.162
 Provides-Extra: testing
+Requires-Dist: click; extra == "testing"
+Requires-Dist: psycopg2; extra == "testing"
+Requires-Dist: requests; extra == "testing"
+Requires-Dist: prometheus-client; extra == "testing"
+Requires-Dist: swh.core[http]>=0.3; extra == "testing"
+Requires-Dist: swh.deposit>=0.3; extra == "testing"
+Requires-Dist: swh.storage>=0.0.162; extra == "testing"
 Requires-Dist: pytest; extra == "testing"
 Requires-Dist: pytest-mock; extra == "testing"
 Requires-Dist: requests-mock; extra == "testing"
