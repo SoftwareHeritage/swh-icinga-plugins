@@ -61,13 +61,13 @@ def test_save_code_now_success(requests_mock, mocker, mocked_time, origin_info):
         scenario.add_step(
             "post",
             api_url,
-            fake_response(origin, visit_type, "accepted", "not yet scheduled"),
+            fake_response(origin, visit_type, "accepted", "pending"),
         )
-        response_scheduled = fake_response(origin, visit_type, "accepted", "scheduled")
+        response_running = fake_response(origin, visit_type, "accepted", "running")
         # status polling requests
-        scenario.add_step("get", api_url, [response_scheduled])
+        scenario.add_step("get", api_url, [response_running])
         # sometimes we can have multiple response so we fake that here
-        scenario.add_step("get", api_url, [response_scheduled, response_scheduled])
+        scenario.add_step("get", api_url, [response_running, response_running])
         scenario.add_step(
             "get", api_url, [fake_response(origin, visit_type, "accepted", "succeeded")]
         )
@@ -108,11 +108,11 @@ def test_save_code_now_failure(requests_mock, mocker, mocked_time, origin_info):
     scenario.add_step(
         "post",
         api_url,
-        fake_response(origin, visit_type, "accepted", "not yet scheduled"),
+        fake_response(origin, visit_type, "accepted", "pending"),
     )
     # status polling requests
     scenario.add_step(
-        "get", api_url, [fake_response(origin, visit_type, "accepted", "scheduled")]
+        "get", api_url, [fake_response(origin, visit_type, "accepted", "running")]
     )
     scenario.add_step(
         "get", api_url, [fake_response(origin, visit_type, "accepted", "failed")]
@@ -195,7 +195,7 @@ def test_save_code_now_threshold_exceeded(
     scenario.add_step(
         "post",
         api_url,
-        fake_response(origin, visit_type, "accepted", "not yet scheduled"),
+        fake_response(origin, visit_type, "accepted", "pending"),
     )
 
     # we'll make the response being in the awaiting status
@@ -242,11 +242,11 @@ def test_save_code_now_unexpected_failure(
     scenario.add_step(
         "post",
         api_url,
-        fake_response(origin, visit_type, "accepted", "not yet scheduled"),
+        fake_response(origin, visit_type, "accepted", "pending"),
     )
     # status polling requests
     scenario.add_step(
-        "get", api_url, [fake_response(origin, visit_type, "accepted", "scheduled")]
+        "get", api_url, [fake_response(origin, visit_type, "accepted", "running")]
     )
     # unexpected issue when communicating with the api
     scenario.add_step("get", api_url, {}, status_code=500)

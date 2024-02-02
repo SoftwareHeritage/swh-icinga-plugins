@@ -13,7 +13,7 @@ from .base_check import BaseCheck
 
 REPORT_MSG = "Save code now request for origin"
 
-WAITING_STATUSES = ("not yet scheduled", "running", "scheduled")
+WAITING_STATUSES = ("pending", "running")
 
 
 class SaveCodeNowCheck(BaseCheck):
