@@ -1,4 +1,4 @@
-pytest
+pytest >= 8.1
 pytest-mock
 requests-mock
 types-click
