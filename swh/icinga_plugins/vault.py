@@ -166,9 +166,11 @@ class VaultCheck(BaseCheck):
                     ):
                         self.print_result(
                             "CRITICAL",
-                            f"Unexpected member in tarball: {tarinfo.name}"
-                            if tarinfo
-                            else "Fetched tarball is empty",
+                            (
+                                f"Unexpected member in tarball: {tarinfo.name}"
+                                if tarinfo
+                                else "Fetched tarball is empty"
+                            ),
                             total_time=total_time,
                         )
                         self._collect_prometheus_metrics(
