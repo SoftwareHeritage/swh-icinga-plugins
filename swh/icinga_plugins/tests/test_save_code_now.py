@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2022  The Software Heritage developers
+# Copyright (C) 2021-2024  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -63,11 +63,14 @@ def test_save_code_now_success(requests_mock, mocker, mocked_time, origin_info):
             api_url,
             fake_response(origin, visit_type, "accepted", "pending"),
         )
+        response_scheduled = fake_response(origin, visit_type, "accepted", "scheduled")
         response_running = fake_response(origin, visit_type, "accepted", "running")
         # status polling requests
-        scenario.add_step("get", api_url, [response_running])
+        scenario.add_step("get", api_url, [response_scheduled, response_running])
         # sometimes we can have multiple response so we fake that here
-        scenario.add_step("get", api_url, [response_running, response_running])
+        scenario.add_step(
+            "get", api_url, [response_scheduled, response_running, response_running]
+        )
         scenario.add_step(
             "get", api_url, [fake_response(origin, visit_type, "accepted", "succeeded")]
         )

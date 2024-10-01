@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2022  The Software Heritage developers
+# Copyright (C) 2021-2024  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -13,7 +13,7 @@ from .base_check import BaseCheck
 
 REPORT_MSG = "Save code now request for origin"
 
-WAITING_STATUSES = ("pending", "running")
+WAITING_STATUSES = ("pending", "scheduled", "running")
 
 
 class SaveCodeNowCheck(BaseCheck):
