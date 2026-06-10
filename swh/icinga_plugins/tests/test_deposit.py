@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2022  The Software Heritage developers
+# Copyright (C) 2019-2026  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -103,9 +103,7 @@ def status_template(
 
 def test_status_template():
     actual_status = status_template(status="deposited")
-    assert (
-        actual_status
-        == """
+    assert actual_status == """
 <entry xmlns="http://www.w3.org/2005/Atom"
        xmlns:sword="http://purl.org/net/sword/"
        xmlns:swh="https://www.softwareheritage.org/schema/2018/deposit"
@@ -115,12 +113,9 @@ def test_status_template():
     <swh:deposit_status_detail></swh:deposit_status_detail>
 </entry>
 """
-    )
 
     actual_status = status_template(status="verified", status_detail="detail")
-    assert (
-        actual_status
-        == """
+    assert actual_status == """
 <entry xmlns="http://www.w3.org/2005/Atom"
        xmlns:sword="http://purl.org/net/sword/"
        xmlns:swh="https://www.softwareheritage.org/schema/2018/deposit"
@@ -130,14 +125,11 @@ def test_status_template():
     <swh:deposit_status_detail>detail</swh:deposit_status_detail>
 </entry>
 """
-    )
 
     actual_status = status_template(
         status="done", swhid="swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74"
     )
-    assert (
-        actual_status
-        == """
+    assert actual_status == """
 <entry xmlns="http://www.w3.org/2005/Atom"
        xmlns:sword="http://purl.org/net/sword/"
        xmlns:swh="https://www.softwareheritage.org/schema/2018/deposit"
@@ -148,7 +140,6 @@ def test_status_template():
     <swh:deposit_swh_id>swh:1:dir:02ed6084fb0e8384ac58980e07548a547431cf74</swh:deposit_swh_id>
 </entry>
 """
-    )
 
 
 @pytest.fixture(scope="session")

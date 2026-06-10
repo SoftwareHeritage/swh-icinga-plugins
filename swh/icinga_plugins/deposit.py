@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2023  The Software Heritage developers
+# Copyright (C) 2019-2026  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
@@ -279,7 +279,7 @@ class DepositCheck(BaseCheck):
 
         # Everything went fine, check total time wasn't too large and
         # print result
-        (status_code, status) = self.get_status(metrics["total_time"])
+        status_code, status = self.get_status(metrics["total_time"])
         self.print_result(
             status,
             f'Deposit took {metrics["total_time"]:.2f}s and succeeded.',
@@ -315,7 +315,7 @@ class DepositCheck(BaseCheck):
             self.collect_prometheus_metric("status", 2)
             return 2
 
-        (status_code, status) = self.get_status(metrics_update["total_time"])
+        status_code, status = self.get_status(metrics_update["total_time"])
         self.print_result(
             status,
             f'Deposit Metadata update took {metrics_update["update_time"]:.2f}s '
