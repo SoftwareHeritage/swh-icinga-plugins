@@ -3,7 +3,6 @@
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
-import sys
 import tarfile
 import time
 from typing import List
@@ -188,21 +187,6 @@ class VaultCheck(BaseCheck):
                 )
                 return 2
             except tarfile.StreamError as e:
-                if (
-                    sys.version_info < (3, 11)
-                    and e.args[0] == "seeking backwards is not allowed"
-                ):
-                    # Probably https://github.com/python/cpython/issues/91078
-                    self.print_result(
-                        "CRITICAL",
-                        f"StreamError while reading tarball (empty file?): {e}",
-                        total_time=total_time,
-                    )
-                    self._collect_prometheus_metrics(
-                        2, total_time, ["check", "archive_content"]
-                    )
-                    return 2
-
                 self.print_result(
                     "CRITICAL",
                     f"StreamError while reading tarball: {e}",

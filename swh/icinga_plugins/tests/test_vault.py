@@ -1,10 +1,9 @@
-# Copyright (C) 2019-2021  The Software Heritage developers
+# Copyright (C) 2019-2026  The Software Heritage developers
 # See the AUTHORS file at the top-level directory of this distribution
 # License: GNU General Public License version 3, or any later version
 # See top-level LICENSE file for more information
 
 import io
-import sys
 import tarfile
 import time
 
@@ -559,16 +558,9 @@ def test_vault_empty_tarball(requests_mock, mocker, mocked_time):
 
     assert result.exit_code == 2, result.output
 
-    if sys.version_info >= (3, 11):
-        assert result.output == (
-            "VAULT CRITICAL - Fetched tarball is empty\n| 'total_time' = 20.00s\n"
-        )
-    else:
-        assert result.output == (
-            "VAULT CRITICAL - StreamError while reading tarball (empty file?): "
-            "seeking backwards is not allowed\n"
-            "| 'total_time' = 20.00s\n"
-        )
+    assert result.output == (
+        "VAULT CRITICAL - Fetched tarball is empty\n| 'total_time' = 20.00s\n"
+    )
 
 
 def test_vault_no_fetch_url(requests_mock, mocker, mocked_time):
