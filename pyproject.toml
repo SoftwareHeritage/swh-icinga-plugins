@@ -16,27 +16,10 @@ classifiers = [
 ]
 dynamic = ["version", "dependencies", "optional-dependencies"]
 
-[tool.setuptools.packages.find]
-include = ["swh.*"]
-
-[tool.setuptools]
-include-package-data = true
-
-[tool.setuptools.package-data]
-"swh.icinga_plugins" = ["swh/icinga_plugins/data/*"]
-
-[tool.setuptools.dynamic]
-dependencies = { file = ["requirements.txt", "requirements-swh.txt"] }
-
-[tool.setuptools.dynamic.optional-dependencies]
-testing = { file = [
-    "requirements.txt",
-    "requirements-swh.txt",
-    "requirements-test.txt",
-] }
 
 [project.entry-points."swh.cli.subcommands"]
 "swh.icinga_plugins" = "swh.icinga_plugins.cli"
+
 
 [project.urls]
 "Homepage" = "https://gitlab.softwareheritage.org/swh/devel/swh-icinga-plugins"
@@ -46,11 +29,21 @@ testing = { file = [
 "Source" = "https://gitlab.softwareheritage.org/swh/devel/swh-icinga-plugins.git"
 
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "hatch-requirements-txt", "hatch-vcs"]
+build-backend = "hatchling.build"
 
-[tool.setuptools_scm]
-fallback_version = "0.0.1"
+[tool.hatch.metadata.hooks.requirements_txt]
+files = ["requirements.txt", "requirements-swh.txt"]
+
+[tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
+testing = ["requirements-test.txt"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["swh"]
+
+[tool.hatch.version]
+source = "vcs"
+fallback-version = "0.0.1"
 
 [tool.black]
 target-version = ['py311', 'py312', 'py313']
